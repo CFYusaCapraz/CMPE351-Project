@@ -7,6 +7,13 @@
 -This program simulates the CPU Scheduler methods
 */
 
+/*TODO
+-Need to implement a way to check if the passed parameters are a txt file
+-Need to implement a linked list structure and funtions
+-Need to implement a queue structure and funtions
+-Need to implement a custom structure for reading the input file
+*/
+
 //This funtions is used to print programs usage and what arguments are needed to pass
 void print_usage(){
         printf("Usage: cmpe351 -f <*.txt> -o <*.txt>\n");
