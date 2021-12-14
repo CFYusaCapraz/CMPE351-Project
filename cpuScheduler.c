@@ -9,7 +9,7 @@
 */
 
 /*TODO
--Need to implement a way to check if the passed parameters are a txt file (DONE!)
+-Need to implement a way to check if the passed parameters are a txt file (Not DONE! Need research!!!!!!!!!)
 -Need to implement a linked list structure and funtions
 -Need to implement a queue structure and funtions
 -Need to implement a custom structure for reading the input file
@@ -47,18 +47,6 @@ int main(int argc, char *argv[]){
 	if (input_filename == NULL || output_filename == NULL)
 	{
 		print_usage();
-	}
-	//If passed we check if they are the correct file type
-	else
-	{
-		char* token_Input = strtok(input_filename, ".");
-		token_Input = strtok(NULL, ".");
-
-		char* token_Output = strtok(output_filename, ".");
-		token_Output = strtok(NULL, ".");
-
-		if (strcmp(token_Input,"txt") || strcmp(token_Output,"txt"))
-			print_usage();
 	}
 
         return 0;
