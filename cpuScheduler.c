@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 
 /****************
 -This is CMPE 351 Project program
@@ -8,7 +9,9 @@
 */
 
 /*TODO
--Need to implement a way to check if the passed parameters are a txt file (Not DONE! Need research!!!!!!!!!)
+-Need to implement a way to check if the passed input argument exists (Not gonna check if the file is txt, just check
+-file exists(DONE!!!)
+
 -Need to implement a linked list structure and funtions
 -Need to implement a queue structure and funtions
 -Need to implement a custom structure for reading the input file
@@ -55,6 +58,17 @@ int main(int argc, char *argv[]){
 	{
 		print_usage();
 	}
+
+	FILE *finput = fopen(input_filename, "r");
+	if (finput == NULL)//Checking if the input file argument exists.
+	{
+		printf("The argument that you passed as input file does not exists.\n");
+		printf("Please check the input file argument and run the program again\n");
+		exit(1);
+	}
+	/*char* tmp;int a,b,c;
+	fscanf(finput, "%d:%d:%d",&a,&b,&c); printf("%d %d %d",a,b,c);*/
+	fclose(finput);
 
 	menu();
 
