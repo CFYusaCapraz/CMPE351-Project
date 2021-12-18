@@ -107,6 +107,7 @@ void print_usage(){
         printf("Usage: cmpe351 -f <*.txt> -o <*.txt>\n");
         exit(1);
 }
+
 //Main Menu Function
 void menu(){
 	system("clear");
@@ -248,3 +249,83 @@ void tq_menu(){
 		printf("Time Quantum > "); scanf("%d",&time_quantum);
 	}
 }
+
+//Creating node Function
+struct node* create_node(int id, int burst_time, int arrival_time, int priority){
+	struct node* temp;
+    temp = (struct node*) malloc(sizeof(struct node));
+
+	temp->process_id = id;
+	temp->burst_time = burst_time;
+	temp->arrival_time = arrival_time;
+	temp->priority = priority;
+	temp->next = NULL;
+
+	return temp;
+}
+
+//Insert back to the LL Function
+struct node* insert_back(struct node* header, int id, int burst_time, int arrival_time, int priority){
+	struct node* temp = create_node(id, burst_time, arrival_time, priority);
+	struct node* header_temp = header;
+
+	//Check if the linked list is empty
+	if (header == NULL)
+	{
+		header = temp;
+		return header;
+	}
+
+	header_temp = header;
+	while (header_temp->next != NULL)//Iterate until we reach the last node
+		header_temp = header_temp->next;
+
+	header_temp->next = temp;
+	return header;
+}
+
+//Insert front of the LL Funtion
+struct node* insert_front(struct node* header, int id, int burst_time, int arrival_time, int priority){
+	struct node* temp = create_node(id, burst_time, arrival_time, priority);
+	temp->next = header;
+	header->next = temp;
+	return header;
+}
+
+//Delete back of the LL Function
+struct node* delete_back(struct node* header){
+	struct node* temp, *header_temp;
+
+	//Checking if the LL is empty
+	if (header == NULL)
+	{
+		return header;
+	}
+
+	header_temp = header;
+	while (header_temp->next->next != NULL)
+	{
+		header_temp = header_temp->next;
+	}
+	temp = header_temp->next;
+	header_temp->next = NULL;
+	free(temp);
+	return header;
+
+}
+
+//Delete front of the LL Function
+struct node* delete_front(struct node* header){
+	struct node* temp;
+
+	if (header == NULL)
+	{
+		return header;
+	}
+
+	temp = header;
+	header = header->next;
+	free(temp);
+	return header;
+}
+
