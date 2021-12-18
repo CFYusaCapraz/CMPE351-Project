@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include <string.h>
+#include <stdbool.h>
 
 /****************
 -This is CMPE 351 Project program
@@ -9,14 +9,35 @@
 */
 
 /*TODO
--Need to implement a way to check if the passed input argument exists (Not gonna check if the file is txt, just check
--file exists(DONE!!!)
+-Need to implement a way to check if the passed input argument exists (Not gonna check if the file is txt, just
+-check file exists(DONE!!!)
 
 -Need to implement a linked list structure and funtions
 -Need to implement a queue structure and funtions
 -Need to implement a custom structure for reading the input file
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
 */
+
+struct node{
+	int process_id;
+	int burst_time;
+	int arrival_time;
+	int priority;
+	int waiting_time;
+	int turnaround_time;
+	int how_much_left;
+	bool is_terminated;
+	struct node *next;
+};
+
+//Prototypes for Linked List
+struct node* create_node(int,int,int,int);
+struct node* insert_back(struct node*,int,int,int,int);
+struct node* insert_back(struct node*,int,int,int,int);
+struct node* delete_back(struct node*);
+struct node* delete_front(struct node*);
+//Prototypes for Linked List
+
 
 enum CPUMethods{NONE, FCFS, SJF, PS, RR}method=NONE;//CPU Scheduling Methods Enumeration
 enum PMode{OFF,ON}mode=OFF;//Preemtive Mode Enumeration
@@ -66,6 +87,12 @@ int main(int argc, char *argv[]){
 		printf("Please check the input file argument and run the program again\n");
 		exit(1);
 	}
+	int id_counter = 0;
+	while (!feof(finput))
+	{
+		//fscanf(finput, "%d:%d:%d",);
+	}
+
 	/*char* tmp;int a,b,c;
 	fscanf(finput, "%d:%d:%d",&a,&b,&c); printf("%d %d %d",a,b,c);*/
 	fclose(finput);
