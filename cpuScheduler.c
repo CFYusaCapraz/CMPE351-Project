@@ -87,19 +87,21 @@ int main(int argc, char *argv[]){
 		printf("Please check the input file argument and run the program again\n");
 		exit(1);
 	}
-	int id_counter = 0;
-	while (!feof(finput))
-	{
-		//fscanf(finput, "%d:%d:%d",);
-	}
-
-	/*char* tmp;int a,b,c;
-	fscanf(finput, "%d:%d:%d",&a,&b,&c); printf("%d %d %d",a,b,c);*/
-	fclose(finput);
 
 	menu();
 
-        return 0;
+	int id_counter = 0;
+	struct node* header_original = NULL;
+	while (!feof(finput))//Reading the input file and recording the values to Linked List
+	{
+		int a,b,c;
+		fscanf(finput, "%d:%d:%d\n",&a,&b,&c);
+		header_original = insert_back(header_original,id_counter,a,b,c);
+		id_counter++;
+	}
+	fclose(finput);
+    
+	return 0;
 }
 
 //This funtions is used to print programs usage and what arguments are needed to pass
@@ -259,6 +261,10 @@ struct node* create_node(int id, int burst_time, int arrival_time, int priority)
 	temp->burst_time = burst_time;
 	temp->arrival_time = arrival_time;
 	temp->priority = priority;
+	temp->waiting_time = 0;
+	temp->turnaround_time = 0;
+	temp->is_terminated = false;
+	temp->how_much_left = burst_time;
 	temp->next = NULL;
 
 	return temp;
