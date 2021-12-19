@@ -17,8 +17,8 @@ check file exists(DONE!!!)
 -Need to implement a queue structure and funtions
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS is Done!!!!!!
--Implement Selection Sort for Non-Preemtive Priority and SJF Methods
+-FCFS is Done!!!!!!SJF-NP is half done
+-Implement Selection Sort for Non-Preemtive Priority and SJF Methods(SJF Done!! Priority not DONE!!!!)
 */
 
 //GLOBALS//
@@ -74,6 +74,10 @@ void tq_menu();						 //Asking the user for time quantum if RR method is selecte
 void write_input_to_LL(char *);		 //Reading the input file and then writing it to LL
 int total_burst_time(struct node *); //Getting total burst time of the input file
 void fcfs();						 //FirstComeFirstServe Functions
+void sjf_np();						 //Shortes-Job-First Non-Preemtive
+//void sjf_p();						 //Shortes-Job-First Preemtive
+int process_counter(struct node *);//Process counter
+struct node *bubble_sort_for_burst(struct node *);//Bubble Sort for Burst Time(SJF)
 //Prototypes
 
 int main(int argc, char *argv[])
@@ -457,6 +461,17 @@ void menu3()
 		fcfs();
 		break;
 
+	case 2:
+		if (mode == 0)
+		{
+			sjf_np();
+		}
+		else
+		{
+			//sjf_p();
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -549,4 +564,77 @@ void fcfs()
 	printf("Press Enter to return to the main menu.\n");
 	getchar();
 	getchar();
+}
+
+//Shortes-Job-First Function
+void sjf_np()
+{
+	//I have first tried selectiob sort but could not figure it out...
+	//...(There were complications regarding to non-adjacent nodes)
+	//So I changed the sorting algorithm to bubble sort
+	struct node *clone_header = clone_LL();
+	int wait_time = 0;
+	int number_of_process = process_counter(clone_header);
+	clone_header = bubble_sort_for_burst(clone_header);
+	display_LL(clone_header);
+}
+
+//Counts How many process' are in the LL
+int process_counter(struct node *header)
+{
+	struct node *temp = header;
+	int counter = 0;
+	while (temp != NULL)
+	{
+		counter++;
+		temp = temp->next;
+	}
+
+	return counter;
+}
+
+//Sorts LL in ascending order (for SJF)
+struct node *bubble_sort_for_burst(struct node *header)
+{
+	struct node *temp, *clone = header;
+	while (header != NULL)
+	{
+		temp = header->next;
+		while (temp != NULL)
+		{
+			if (header->burst_time > temp->burst_time)
+			{
+				struct node *swap = temp;
+				int pid = swap->process_id;
+				int burst = swap->burst_time;
+				int arrival = swap->arrival_time;
+				int priority = swap->priority;
+				int wait = swap->waiting_time;
+				int turnaround = swap->turnaround_time;
+				int left = swap->how_much_left;
+				bool is_done = swap->is_terminated;
+
+				temp->process_id = header->process_id;
+				temp->burst_time =  header->burst_time;
+				temp->arrival_time = header->arrival_time;
+				temp->priority = header->priority;
+				temp->waiting_time = header->waiting_time;
+				temp->turnaround_time = header->turnaround_time;
+				temp->how_much_left = header->how_much_left;
+				temp->is_terminated = header->is_terminated;
+
+				header->process_id = pid;
+				header->burst_time = burst;
+				header->arrival_time = arrival;
+				header->priority = priority;
+				header->waiting_time = wait;
+				header->turnaround_time = turnaround;
+				header->how_much_left = left;
+				header->is_terminated = is_done;
+			}
+			temp = temp->next;
+		}
+		header = header->next;
+	}
+	return clone;
 }
