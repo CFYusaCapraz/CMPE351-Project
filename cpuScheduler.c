@@ -18,6 +18,7 @@ check file exists(DONE!!!)
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
 -FCFS is Done!!!!!!
+-Implement Selection Sort for Non-Preemtive Priority and SJF Methods
 */
 
 //GLOBALS//
