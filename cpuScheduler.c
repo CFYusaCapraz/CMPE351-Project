@@ -61,6 +61,7 @@ struct node *insert_back(struct node *, int, int, int, int);
 struct node *delete_back(struct node *);
 struct node *delete_front(struct node *);
 void display_LL(struct node *);
+struct node *clone_LL();
 //Prototypes for Linked List
 
 //Prototypes
@@ -119,12 +120,12 @@ int main(int argc, char *argv[])
 }
 
 //Creating node Function
-struct node *create_node(int id, int burst_time, int arrival_time, int priority)
+struct node *create_node(int pid, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp;
 	temp = (struct node *)malloc(sizeof(struct node));
 
-	temp->process_id = id;
+	temp->process_id = pid;
 	temp->burst_time = burst_time;
 	temp->arrival_time = arrival_time;
 	temp->priority = priority;
@@ -226,6 +227,27 @@ void display_LL(struct node *header)
 	}
 
 	system("sleep 5");
+}
+
+//Cloning Main LL Function
+struct node *clone_LL()
+{
+	struct node *header_temp = header_original;
+	struct node *clone_header = NULL;
+
+	while (header_temp != NULL)
+	{
+		int pid = 0, burst = 0, arrival = 0, priority = 0;
+		pid = header_temp->process_id;
+		burst = header_temp->burst_time;
+		arrival = header_temp->arrival_time;
+		priority = header_temp->priority;
+		clone_header = insert_back(clone_header, pid, burst, arrival, priority);
+
+		header_temp = header_temp->next;
+	}
+
+	return clone_header;
 }
 
 //This funtions is used to print programs usage and what arguments are needed to pass
@@ -457,7 +479,12 @@ void write_input_to_LL(char *input_filename)
 {
 	FILE *finput = fopen(input_filename, "r");
 	int id_counter = 0;
-	if (!feof(finput))
+	if (feof(finput))
+	{
+		printf("The input file is empty\n");
+		exit(1);
+	}
+	else
 	{
 		while (!feof(finput)) //Reading the input file and recording the values to Linked List
 		{
@@ -467,12 +494,6 @@ void write_input_to_LL(char *input_filename)
 			id_counter++;
 		}
 	}
-	else
-	{
-		printf("The input file is empty\n");
-		exit(1);
-	}
-
 	fclose(finput);
 }
 
@@ -498,20 +519,21 @@ int total_burst_time(struct node *header)
 //First-Come-First-Serve Function
 void fcfs()
 {
-	struct node *header_temp, *temp = header_original;
-	header_temp = header_original;
+	struct node *clone_header = clone_LL();
+	struct node *temp = clone_header;
 	int wait_time = 0;
 	int number_of_process = 0;
 
-	while (header_temp != NULL)
+	while (clone_header != NULL)
 	{
-		header_temp->waiting_time = wait_time;
-		wait_time += header_temp->burst_time;
+		clone_header->waiting_time = wait_time;
+		wait_time += clone_header->burst_time;
 		number_of_process++;
-		header_temp = header_temp->next;
+		clone_header = clone_header->next;
 	}
 
 	float average_wait = 0.00f;
+	system("clear");
 	printf("Scheduling Method: First Come First Served\n");
 	printf("Process Waiting Times:\n");
 	while (temp != NULL)
