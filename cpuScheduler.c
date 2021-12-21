@@ -76,8 +76,9 @@ int total_burst_time(struct node *); //Getting total burst time of the input fil
 void fcfs();						 //FirstComeFirstServe Functions
 void sjf_np();						 //Shortes-Job-First Non-Preemtive
 //void sjf_p();						 //Shortes-Job-First Preemtive
-int process_counter(struct node *);//Process counter
-struct node *bubble_sort_for_burst(struct node *);//Bubble Sort for Burst Time(SJF)
+int process_counter(struct node *);						 //Process counter
+struct node *swap_nodes(struct node *, struct node *);	 //Swap Funcion
+void bubble_sort(struct node **, int, char *); //Bubble Sort
 //Prototypes
 
 int main(int argc, char *argv[])
@@ -146,7 +147,7 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 struct node *insert_back(struct node *header, int id, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp = create_node(id, burst_time, arrival_time, priority);
-	struct node *header_temp = header;
+	struct node *header_temp;
 
 	//Check if the linked list is empty
 	if (header == NULL)
@@ -230,13 +231,14 @@ void display_LL(struct node *header)
 		temp = temp->next;
 	}
 
-	system("sleep 5");
+	getchar();
+	getchar();
 }
 
 //Cloning Main LL Function
-struct node *clone_LL()
+struct node *clone_LL(struct node *header)
 {
-	struct node *header_temp = header_original;
+	struct node *header_temp = header;
 	struct node *clone_header = NULL;
 
 	while (header_temp != NULL)
@@ -534,20 +536,19 @@ int total_burst_time(struct node *header)
 //First-Come-First-Serve Function
 void fcfs()
 {
-	struct node *clone_header = clone_LL();
+	struct node *clone_header = clone_LL(header_original);
 	struct node *temp = clone_header;
 	int wait_time = 0;
-	int number_of_process = 0;
+	float average_wait = 0.00f;
+	int number_of_process = process_counter(clone_header);
 
 	while (clone_header != NULL)
 	{
 		clone_header->waiting_time = wait_time;
 		wait_time += clone_header->burst_time;
-		number_of_process++;
 		clone_header = clone_header->next;
 	}
 
-	float average_wait = 0.00f;
 	system("clear");
 	printf("Scheduling Method: First Come First Served\n");
 	printf("Process Waiting Times:\n");
@@ -572,11 +573,37 @@ void sjf_np()
 	//I have first tried selectiob sort but could not figure it out...
 	//...(There were complications regarding to non-adjacent nodes)
 	//So I changed the sorting algorithm to bubble sort
-	struct node *clone_header = clone_LL();
+	struct node *clone_header = clone_LL(header_original);
+	struct node *temp;
 	int wait_time = 0;
+	float average_wait = 0.00f;
 	int number_of_process = process_counter(clone_header);
-	clone_header = bubble_sort_for_burst(clone_header);
-	display_LL(clone_header);
+	bubble_sort(&clone_header, number_of_process, "SJF");
+	temp = clone_LL(clone_header);
+	struct node *temp1 = temp;
+	while (temp != NULL)
+	{
+		temp->waiting_time = wait_time;
+		wait_time += temp->burst_time;
+		temp = temp->next;
+	}
+
+	system("clear");
+	printf("Scheduling Method: First Come First Served\n");
+	printf("Process Waiting Times:\n");
+	while (temp1 != NULL)
+	{
+		int pid = temp1->process_id;
+		int wait = temp1->waiting_time;
+		average_wait += wait;
+		printf("PS%d: %d ms\n", pid, wait);
+		temp1 = temp1->next;
+	}
+	average_wait /= number_of_process;
+	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
+	printf("Press Enter to return to the main menu.\n");
+	getchar();
+	getchar();
 }
 
 //Counts How many process' are in the LL
@@ -593,48 +620,65 @@ int process_counter(struct node *header)
 	return counter;
 }
 
-//Sorts LL in ascending order (for SJF)
-struct node *bubble_sort_for_burst(struct node *header)
+//Swapping nodes
+struct node *swap_nodes(struct node *temp1, struct node *temp2)
 {
-	struct node *temp, *clone = header;
-	while (header != NULL)
+	struct node *tmp = temp2->next;
+	temp2->next = temp1;
+	temp1->next = tmp;
+	return temp2;
+}
+
+//Sorts LL in ascending order
+void bubble_sort(struct node **header, int counter, char *sort_mode)
+{
+	struct node **header_temp;
+	int swapped;
+
+	for (int i = 0; i < counter; i++)
 	{
-		temp = header->next;
-		while (temp != NULL)
+		header_temp = header;
+		swapped = 0;
+
+		for (int j = 0; j < counter - 1 - i; j++)
 		{
-			if (header->burst_time > temp->burst_time)
+			struct node *temp1 = *header_temp;
+			struct node *temp2 = temp1->next;
+
+			if (!strcmp(sort_mode, "SJF"))
 			{
-				struct node *swap = temp;
-				int pid = swap->process_id;
-				int burst = swap->burst_time;
-				int arrival = swap->arrival_time;
-				int priority = swap->priority;
-				int wait = swap->waiting_time;
-				int turnaround = swap->turnaround_time;
-				int left = swap->how_much_left;
-				bool is_done = swap->is_terminated;
-
-				temp->process_id = header->process_id;
-				temp->burst_time =  header->burst_time;
-				temp->arrival_time = header->arrival_time;
-				temp->priority = header->priority;
-				temp->waiting_time = header->waiting_time;
-				temp->turnaround_time = header->turnaround_time;
-				temp->how_much_left = header->how_much_left;
-				temp->is_terminated = header->is_terminated;
-
-				header->process_id = pid;
-				header->burst_time = burst;
-				header->arrival_time = arrival;
-				header->priority = priority;
-				header->waiting_time = wait;
-				header->turnaround_time = turnaround;
-				header->how_much_left = left;
-				header->is_terminated = is_done;
+				if (temp1->burst_time >= temp2->burst_time)
+				{
+					*header_temp = swap_nodes(temp1, temp2);
+					swapped = 1;
+				}
+				header_temp = &(*header_temp)->next;
 			}
-			temp = temp->next;
+
+			else if (!strcmp(sort_mode, "PS"))
+			{
+				if (temp1->priority >= temp2->priority)
+				{
+					*header_temp = swap_nodes(temp1, temp2);
+					swapped = 1;
+				}
+				header_temp = &(*header_temp)->next;
+			}
+
+			else if (!strcmp(sort_mode, "PID"))
+			{
+				if (temp1->process_id >= temp2->process_id)
+				{
+					*header_temp = swap_nodes(temp1, temp2);
+					swapped = 1;
+				}
+				header_temp = &(*header_temp)->next;
+			}
 		}
-		header = header->next;
+
+		if (swapped == 0)
+		{
+			break;
+		}
 	}
-	return clone;
 }
