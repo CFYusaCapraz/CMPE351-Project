@@ -21,7 +21,7 @@ check file exists(DONE!!!)
 -Implement Bubble Sort for Non-Preemtive Priority and SJF Methods(SJF Done!! Priority not DONE!!!!)
 */
 
-//GLOBALS//
+// GLOBALS//
 enum CPUMethods
 {
 	NONE,
@@ -29,16 +29,16 @@ enum CPUMethods
 	SJF,
 	PS,
 	RR
-} method = NONE; //CPU Scheduling Methods Enumeration
+} method = NONE; // CPU Scheduling Methods Enumeration
 enum PMode
 {
 	OFF,
 	ON
-} mode = OFF; //Preemtive Mode Enumeration
+} mode = OFF; // Preemtive Mode Enumeration
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
-//GLOBALS//
+// GLOBALS//
 
 struct node
 {
@@ -54,7 +54,7 @@ struct node
 };
 struct node *header_original = NULL;
 
-//Prototypes for Linked List
+// Prototypes for Linked List
 struct node *create_node(int, int, int, int);
 struct node *insert_back(struct node *, int, int, int, int);
 struct node *insert_back(struct node *, int, int, int, int);
@@ -62,30 +62,31 @@ struct node *delete_back(struct node *);
 struct node *delete_front(struct node *);
 void display_LL(struct node *);
 struct node *clone_LL();
-//Prototypes for Linked List
+// Prototypes for Linked List
 
-//Prototypes
-void print_usage();					 //Usage showing Function
-void menu();						 //Main Menu Function
-void menu1();						 //Scheduling Methods Menu Function
-void menu2();						 //Preemtive Mode Menu Function
-void menu3();						 //Show Results Menu Function
-void tq_menu();						 //Asking the user for time quantum if RR method is selected
-void write_input_to_LL(char *);		 //Reading the input file and then writing it to LL
-int total_burst_time(struct node *); //Getting total burst time of the input file
-void fcfs();						 //FirstComeFirstServe Functions
-void sjf_np();						 //Shortes-Job-First Non-Preemtive
-//void sjf_p();						 //Shortes-Job-First Preemtive
-int process_counter(struct node *);						 //Process counter
-struct node *swap_nodes(struct node *, struct node *);	 //Swap Funcion
-void bubble_sort(struct node **, int, char *); //Bubble Sort
-//Prototypes
+// Prototypes
+void print_usage();					 // Usage showing Function
+void menu();						 // Main Menu Function
+void menu1();						 // Scheduling Methods Menu Function
+void menu2();						 // Preemtive Mode Menu Function
+void menu3();						 // Show Results Menu Function
+void tq_menu();						 // Asking the user for time quantum if RR method is selected
+void write_input_to_LL(char *);		 // Reading the input file and then writing it to LL
+int total_burst_time(struct node *); // Getting total burst time of the input file
+void fcfs();						 // FirstComeFirstServe Functions
+void sjf_np();						 // Shortes-Job-First Non-Preemtive
+// void sjf_p();						 //Shortes-Job-First Preemtive
+void ps_np();										   // Priority Scheduling Non-Preemtive
+int process_counter(struct node *);					   // Process counter
+struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
+void bubble_sort(struct node **, int, char *);		   // Bubble Sort (SJF/PS/PID)
+// Prototypes
 
 int main(int argc, char *argv[])
 {
 	int options = 0;
 
-	//Here we check if the correct options are used
+	// Here we check if the correct options are used
 	while ((options = getopt(argc, argv, "f:o:")) != -1)
 	{
 		switch (options)
@@ -102,14 +103,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	//Here we check if the arguments are passed for options
+	// Here we check if the arguments are passed for options
 	if (input_filename == NULL || output_filename == NULL)
 	{
 		print_usage();
 	}
 
 	FILE *finput = fopen(input_filename, "r");
-	if (finput == NULL) //Checking if the input file argument exists.
+	if (finput == NULL) // Checking if the input file argument exists.
 	{
 		printf("The argument that you passed as input file does not exists.\n");
 		printf("Please check the input file argument and run the program again\n");
@@ -124,7 +125,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-//Creating node Function
+// Creating node Function
 struct node *create_node(int pid, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp;
@@ -143,13 +144,13 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	return temp;
 }
 
-//Insert back to the LL Function
+// Insert back to the LL Function
 struct node *insert_back(struct node *header, int id, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp = create_node(id, burst_time, arrival_time, priority);
 	struct node *header_temp;
 
-	//Check if the linked list is empty
+	// Check if the linked list is empty
 	if (header == NULL)
 	{
 		header = temp;
@@ -157,14 +158,14 @@ struct node *insert_back(struct node *header, int id, int burst_time, int arriva
 	}
 
 	header_temp = header;
-	while (header_temp->next != NULL) //Iterate until we reach the last node
+	while (header_temp->next != NULL) // Iterate until we reach the last node
 		header_temp = header_temp->next;
 
 	header_temp->next = temp;
 	return header;
 }
 
-//Insert front of the LL Funtion
+// Insert front of the LL Funtion
 struct node *insert_front(struct node *header, int id, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp = create_node(id, burst_time, arrival_time, priority);
@@ -173,12 +174,12 @@ struct node *insert_front(struct node *header, int id, int burst_time, int arriv
 	return header;
 }
 
-//Delete back of the LL Function
+// Delete back of the LL Function
 struct node *delete_back(struct node *header)
 {
 	struct node *temp, *header_temp;
 
-	//Checking if the LL is empty
+	// Checking if the LL is empty
 	if (header == NULL)
 	{
 		return header;
@@ -195,7 +196,7 @@ struct node *delete_back(struct node *header)
 	return header;
 }
 
-//Delete front of the LL Function
+// Delete front of the LL Function
 struct node *delete_front(struct node *header)
 {
 	struct node *temp;
@@ -211,7 +212,7 @@ struct node *delete_front(struct node *header)
 	return header;
 }
 
-//Displaying the Linked List Items(For Debugging Purposes Only)
+// Displaying the Linked List Items(For Debugging Purposes Only)
 void display_LL(struct node *header)
 {
 	struct node *temp = header;
@@ -235,7 +236,7 @@ void display_LL(struct node *header)
 	getchar();
 }
 
-//Cloning Main LL Function
+// Cloning Main LL Function
 struct node *clone_LL(struct node *header)
 {
 	struct node *header_temp = header;
@@ -256,14 +257,14 @@ struct node *clone_LL(struct node *header)
 	return clone_header;
 }
 
-//This funtions is used to print programs usage and what arguments are needed to pass
+// This funtions is used to print programs usage and what arguments are needed to pass
 void print_usage()
 {
 	printf("Usage: cmpe351 -f <*.txt> -o <*.txt>\n");
 	exit(1);
 }
 
-//Main Menu Function
+// Main Menu Function
 void menu()
 {
 	while (true)
@@ -311,7 +312,7 @@ void menu()
 		printf("Option > ");
 		scanf("%1d", &option);
 
-		//Will implement a switch syntax here
+		// Will implement a switch syntax here
 		switch (option)
 		{
 		case 1:
@@ -333,12 +334,12 @@ void menu()
 	}
 }
 
-//Scheduling Methods Menu Function
+// Scheduling Methods Menu Function
 void menu1()
 {
 	system("clear");
 	int option = 0;
-	//Modifying Menu according to if preemtive mode is on
+	// Modifying Menu according to if preemtive mode is on
 	if (mode == 1)
 	{
 		printf("1-) None: None of scheduling method chosen\n");
@@ -399,12 +400,12 @@ void menu1()
 	}
 }
 
-//Preemtive Mode Menu Function
+// Preemtive Mode Menu Function
 void menu2()
 {
 	system("clear");
 	int option = 0;
-	if (method == 0) //If any scheduling method is not selected this menu will be shown
+	if (method == 0) // If any scheduling method is not selected this menu will be shown
 	{
 		printf("(Scheduling Methods Menu will be modified according to your preemtive mode choice.)\n");
 		printf("Please! Next time when you are choosing preemtive mode, ");
@@ -427,7 +428,7 @@ void menu2()
 			break;
 		}
 	}
-	else if (method == 2 || method == 3) //If SJF or PS is selected this menu will be shown
+	else if (method == 2 || method == 3) // If SJF or PS is selected this menu will be shown
 	{
 		printf("1-) OFF\n");
 		printf("2-) ON\n");
@@ -447,14 +448,14 @@ void menu2()
 			break;
 		}
 	}
-	else //If FCFS or RR is selected user will be informed that preemtive mode is not available for those methods
+	else // If FCFS or RR is selected user will be informed that preemtive mode is not available for those methods
 	{
 		printf("Preemtive mode is not available for selected Scheduling Method\n");
 		system("sleep 1");
 	}
 }
 
-//Show Result Menu Function
+// Show Result Menu Function
 void menu3()
 {
 	switch (method)
@@ -470,7 +471,18 @@ void menu3()
 		}
 		else
 		{
-			//sjf_p();
+			// sjf_p();
+		}
+		break;
+
+	case 3:
+		if (mode == 0)
+		{
+			ps_np();
+		}
+		else
+		{
+			// ps_p();
 		}
 		break;
 
@@ -479,7 +491,7 @@ void menu3()
 	}
 }
 
-//Time Quantum Asking Menu
+// Time Quantum Asking Menu
 void tq_menu()
 {
 	while (time_quantum == 0)
@@ -491,7 +503,7 @@ void tq_menu()
 	}
 }
 
-//Reading from Input File to Write it to LL Function
+// Reading from Input File to Write it to LL Function
 void write_input_to_LL(char *input_filename)
 {
 	FILE *finput = fopen(input_filename, "r");
@@ -503,7 +515,7 @@ void write_input_to_LL(char *input_filename)
 	}
 	else
 	{
-		while (!feof(finput)) //Reading the input file and recording the values to Linked List
+		while (!feof(finput)) // Reading the input file and recording the values to Linked List
 		{
 			int a, b, c;
 			fscanf(finput, "%d:%d:%d\n", &a, &b, &c);
@@ -514,7 +526,7 @@ void write_input_to_LL(char *input_filename)
 	fclose(finput);
 }
 
-//Getting Total Burst Time Function
+// Getting Total Burst Time Function
 int total_burst_time(struct node *header)
 {
 	struct node *temp = header;
@@ -533,7 +545,7 @@ int total_burst_time(struct node *header)
 	return ret;
 }
 
-//First-Come-First-Serve Function
+// First-Come-First-Serve Function
 void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
@@ -567,12 +579,12 @@ void fcfs()
 	getchar();
 }
 
-//Shortes-Job-First Function
+// Shortes-Job-First Non-Preemtive Function
 void sjf_np()
 {
-	//I have first tried selectiob sort but could not figure it out...
+	// I have first tried selectiob sort but could not figure it out...
 	//...(There were complications regarding to non-adjacent nodes)
-	//So I changed the sorting algorithm to bubble sort
+	// So I changed the sorting algorithm to bubble sort
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
 	int wait_time = 0;
@@ -589,7 +601,7 @@ void sjf_np()
 	}
 
 	system("clear");
-	printf("Scheduling Method: First Come First Served\n");
+	printf("Scheduling Method: Shortest Job First (Non-Preemtive)\n");
 	printf("Process Waiting Times:\n");
 	while (temp1 != NULL)
 	{
@@ -606,7 +618,43 @@ void sjf_np()
 	getchar();
 }
 
-//Counts How many process' are in the LL
+// Priority Scheduling Non-Preemtive Function
+void ps_np()
+{
+	struct node *clone_header = clone_LL(header_original);
+	struct node *temp;
+	int wait_time = 0;
+	float average_wait = 0.00f;
+	int number_of_process = process_counter(clone_header);
+	bubble_sort(&clone_header, number_of_process, "PS");
+	temp = clone_LL(clone_header);
+	struct node *temp1 = temp;
+	while (temp != NULL)
+	{
+		temp->waiting_time = wait_time;
+		wait_time += temp->burst_time;
+		temp = temp->next;
+	}
+
+	system("clear");
+	printf("Scheduling Method: Priority Scheduling (Non-Preemtive)\n");
+	printf("Process Waiting Times:\n");
+	while (temp1 != NULL)
+	{
+		int pid = temp1->process_id;
+		int wait = temp1->waiting_time;
+		average_wait += wait;
+		printf("PS%d: %d ms\n", pid, wait);
+		temp1 = temp1->next;
+	}
+	average_wait /= number_of_process;
+	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
+	printf("Press Enter to return to the main menu.\n");
+	getchar();
+	getchar();
+}
+
+// Counts How many process' are in the LL
 int process_counter(struct node *header)
 {
 	struct node *temp = header;
@@ -620,7 +668,7 @@ int process_counter(struct node *header)
 	return counter;
 }
 
-//Swapping nodes
+// Swapping nodes
 struct node *swap_nodes(struct node *temp1, struct node *temp2)
 {
 	struct node *tmp = temp2->next;
@@ -629,7 +677,7 @@ struct node *swap_nodes(struct node *temp1, struct node *temp2)
 	return temp2;
 }
 
-//Sorts LL in ascending order
+// Sorts LL in ascending order
 void bubble_sort(struct node **header, int counter, char *sort_mode)
 {
 	struct node **header_temp;
