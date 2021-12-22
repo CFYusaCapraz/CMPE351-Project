@@ -48,6 +48,7 @@ struct node
 	int priority;
 	int waiting_time;
 	int turnaround_time;
+	int first_response;
 	int how_much_left;
 	bool is_terminated;
 	struct node *next;
@@ -135,10 +136,11 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	temp->burst_time = burst_time;
 	temp->arrival_time = arrival_time;
 	temp->priority = priority;
-	temp->turnaround_time = 0;
 	temp->waiting_time = 0;
-	temp->is_terminated = false;
+	temp->turnaround_time = 0;
 	temp->how_much_left = burst_time;
+	temp->first_response = 0;
+	temp->is_terminated = false;
 	temp->next = NULL;
 
 	return temp;
@@ -550,14 +552,27 @@ void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp = clone_header;
-	int wait_time = 0;
+	int program_counter = 0;
 	float average_wait = 0.00f;
 	int number_of_process = process_counter(clone_header);
+	bool isFirst = true;
 
 	while (clone_header != NULL)
 	{
-		clone_header->waiting_time = wait_time;
-		wait_time += clone_header->burst_time;
+		clone_header->first_response = program_counter;
+		program_counter += clone_header->burst_time;
+		clone_header->turnaround_time = program_counter;
+		if (isFirst)
+		{
+			if ((clone_header->waiting_time = clone_header->turnaround_time - clone_header->burst_time) < 0)
+				clone_header->waiting_time = 0;
+			isFirst = false;
+		}
+		else
+		{
+			if ((clone_header->waiting_time = clone_header->turnaround_time - clone_header->burst_time - clone_header->arrival_time) < 0)
+				clone_header->waiting_time = 0;
+		}
 		clone_header = clone_header->next;
 	}
 
@@ -587,19 +602,32 @@ void sjf_np()
 	// So I changed the sorting algorithm to bubble sort
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
-	int wait_time = 0;
+	int program_counter = 0;
 	float average_wait = 0.00f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
+	bool isFirst = true;
 	while (temp != NULL)
 	{
-		temp->waiting_time = wait_time;
-		wait_time += temp->burst_time;
+		temp->first_response = program_counter;
+		program_counter += temp->burst_time;
+		temp->turnaround_time = program_counter;
+		if (isFirst)
+		{
+			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
+				temp->waiting_time = 0;
+			isFirst = false;
+		}
+		else
+		{
+			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
+				temp->waiting_time = 0;
+		}
 		temp = temp->next;
 	}
-
+	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: Shortest Job First (Non-Preemtive)\n");
 	printf("Process Waiting Times:\n");
@@ -623,19 +651,32 @@ void ps_np()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
-	int wait_time = 0;
+	int program_counter = 0;
 	float average_wait = 0.00f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
+	bool isFirst = true;
 	while (temp != NULL)
 	{
-		temp->waiting_time = wait_time;
-		wait_time += temp->burst_time;
+		temp->first_response = program_counter;
+		program_counter += temp->burst_time;
+		temp->turnaround_time = program_counter;
+		if (isFirst)
+		{
+			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
+				temp->waiting_time = 0;
+			isFirst = false;
+		}
+		else
+		{
+			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
+				temp->waiting_time = 0;
+		}
 		temp = temp->next;
 	}
-
+	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: Priority Scheduling (Non-Preemtive)\n");
 	printf("Process Waiting Times:\n");
