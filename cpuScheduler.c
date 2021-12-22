@@ -50,6 +50,8 @@ struct node
 	int turnaround_time;
 	int first_response;
 	int how_much_left;
+	int time_slices;
+	int last_slice_burst;
 	bool is_terminated;
 	struct node *next;
 };
@@ -75,12 +77,15 @@ void tq_menu();						 // Asking the user for time quantum if RR method is select
 void write_input_to_LL(char *);		 // Reading the input file and then writing it to LL
 int total_burst_time(struct node *); // Getting total burst time of the input file
 void fcfs();						 // FirstComeFirstServe Functions
-void sjf_np();						 // Shortes-Job-First Non-Preemtive
-// void sjf_p();						 //Shortes-Job-First Preemtive
-void ps_np();										   // Priority Scheduling Non-Preemtive
+void sjf_np();						 // Shortest-Job-First Non-Preemtive
+void sjf_p();						 // Shortest-Job-First Preemtive
+void ps_np();						 // Priority Scheduling Non-Preemtive
+void ps_p();						 // Priority Scheduling Preemtive
+void rr();
 int process_counter(struct node *);					   // Process counter
 struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
 void bubble_sort(struct node **, int, char *);		   // Bubble Sort (SJF/PS/PID)
+bool is_all_done(struct node *);					   // Checking if all the processes are done
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -140,6 +145,8 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	temp->turnaround_time = 0;
 	temp->how_much_left = burst_time;
 	temp->first_response = 0;
+	temp->time_slices = 0;
+	temp->last_slice_burst = 0;
 	temp->is_terminated = false;
 	temp->next = NULL;
 
@@ -488,7 +495,8 @@ void menu3()
 		}
 		break;
 
-	default:
+	case 4:
+		rr();
 		break;
 	}
 }
@@ -503,13 +511,21 @@ void tq_menu()
 		printf("Time Quantum > ");
 		scanf("%d", &time_quantum);
 	}
+
+	struct node *temp = header_original;
+	while (temp != NULL)
+	{
+		temp->time_slices = temp->burst_time / time_quantum;
+		temp->last_slice_burst = temp->burst_time % time_quantum;
+		temp = temp->next;
+	}
 }
 
 // Reading from Input File to Write it to LL Function
 void write_input_to_LL(char *input_filename)
 {
 	FILE *finput = fopen(input_filename, "r");
-	int id_counter = 0;
+	int id_counter = 1;
 	if (feof(finput))
 	{
 		printf("The input file is empty\n");
@@ -520,7 +536,7 @@ void write_input_to_LL(char *input_filename)
 		while (!feof(finput)) // Reading the input file and recording the values to Linked List
 		{
 			int a, b, c;
-			fscanf(finput, "%d:%d:%d\n", &a, &b, &c);
+			fscanf(finput, "%d:%d:%d", &a, &b, &c);
 			header_original = insert_back(header_original, id_counter, a, b, c);
 			id_counter++;
 		}
@@ -553,20 +569,19 @@ void fcfs()
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp = clone_header;
 	int program_counter = 0;
-	float average_wait = 0.00f;
+	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
-	bool isFirst = true;
+	bool is_first = true;
 
 	while (clone_header != NULL)
 	{
-		clone_header->first_response = program_counter;
 		program_counter += clone_header->burst_time;
 		clone_header->turnaround_time = program_counter;
-		if (isFirst)
+		if (is_first)
 		{
 			if ((clone_header->waiting_time = clone_header->turnaround_time - clone_header->burst_time) < 0)
 				clone_header->waiting_time = 0;
-			isFirst = false;
+			is_first = false;
 		}
 		else
 		{
@@ -603,22 +618,21 @@ void sjf_np()
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
 	int program_counter = 0;
-	float average_wait = 0.00f;
+	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
-	bool isFirst = true;
+	bool is_first = true;
 	while (temp != NULL)
 	{
-		temp->first_response = program_counter;
 		program_counter += temp->burst_time;
 		temp->turnaround_time = program_counter;
-		if (isFirst)
+		if (is_first)
 		{
 			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
 				temp->waiting_time = 0;
-			isFirst = false;
+			is_first = false;
 		}
 		else
 		{
@@ -652,22 +666,21 @@ void ps_np()
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
 	int program_counter = 0;
-	float average_wait = 0.00f;
+	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
-	bool isFirst = true;
+	bool is_first = true;
 	while (temp != NULL)
 	{
-		temp->first_response = program_counter;
 		program_counter += temp->burst_time;
 		temp->turnaround_time = program_counter;
-		if (isFirst)
+		if (is_first)
 		{
 			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
 				temp->waiting_time = 0;
-			isFirst = false;
+			is_first = false;
 		}
 		else
 		{
@@ -695,7 +708,90 @@ void ps_np()
 	getchar();
 }
 
-// Counts How many process' are in the LL
+// Round-Robin Scheduling Function
+void rr()
+{
+	struct node *clone_header = clone_LL(header_original);
+	struct node *temp1, *temp2;
+	int program_counter = 0;
+	float average_wait = 0.0f;
+	int number_of_process = process_counter(clone_header);
+	int total_time = total_burst_time(clone_header);
+	bool is_first = true;
+
+	while (!is_all_done(clone_header))
+	{
+		temp1 = clone_header;
+		while (temp1 != NULL)
+		{
+			if (is_first)
+			{
+				if (temp1->time_slices == 0)
+				{
+					program_counter += temp1->last_slice_burst;
+					temp1->turnaround_time = program_counter;
+					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+					if(temp1->waiting_time < 0)
+						temp1->waiting_time = 0;
+					temp1->is_terminated = true;
+				}
+				else
+				{
+					program_counter += time_quantum;
+					temp1->time_slices--;
+					temp1->turnaround_time = program_counter;
+					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+					if(temp1->waiting_time < 0)
+						temp1->waiting_time = 0;
+				}
+				is_first = false;
+			}
+
+			else
+			{
+				if (temp1->time_slices == 0)
+				{
+					program_counter += temp1->last_slice_burst;
+					temp1->turnaround_time = program_counter;
+					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+					if(temp1->waiting_time < 0)
+						temp1->waiting_time = 0;
+					temp1->is_terminated = true;
+				}
+				else
+				{
+					program_counter += time_quantum;
+					temp1->time_slices--;
+					temp1->turnaround_time = program_counter;
+					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+					if(temp1->waiting_time < 0)
+						temp1->waiting_time = 0;
+				}
+			}
+			temp1 = temp1->next;
+		}
+	}
+
+	temp2 = clone_header;
+	system("clear");
+	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
+	printf("Process Waiting Times:\n");
+	while (temp2 != NULL)
+	{
+		int pid = temp2->process_id;
+		int wait = temp2->waiting_time;
+		average_wait += wait;
+		printf("PS%d: %d ms\n", pid, wait);
+		temp2 = temp2->next;
+	}
+	average_wait /= number_of_process;
+	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
+	printf("Press Enter to return to the main menu.\n");
+	getchar();
+	getchar();
+}
+
+// Counts How many process' are in the LL Function
 int process_counter(struct node *header)
 {
 	struct node *temp = header;
@@ -709,7 +805,7 @@ int process_counter(struct node *header)
 	return counter;
 }
 
-// Swapping nodes
+// Swapping nodes Function
 struct node *swap_nodes(struct node *temp1, struct node *temp2)
 {
 	struct node *tmp = temp2->next;
@@ -718,7 +814,7 @@ struct node *swap_nodes(struct node *temp1, struct node *temp2)
 	return temp2;
 }
 
-// Sorts LL in ascending order
+// Sorts LL in ascending order Function
 void bubble_sort(struct node **header, int counter, char *sort_mode)
 {
 	struct node **header_temp;
@@ -770,4 +866,18 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 			break;
 		}
 	}
+}
+
+// Checking if all the processes are done returning true if all done
+bool is_all_done(struct node *header)
+{
+	bool done = true;
+	while (header != NULL)
+	{
+		if (!header->is_terminated)
+			done = false;
+		header = header->next;
+	}
+
+	return done;
 }
