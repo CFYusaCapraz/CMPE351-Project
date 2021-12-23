@@ -3,6 +3,8 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <string.h>
+#include <limits.h>
+#define QUEUE_SIZE INT_MAX
 
 /****************
 -This is CMPE 351 Project program
@@ -17,8 +19,8 @@ check file exists(DONE!!!)
 -Need to implement a queue structure and funtions
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS is Done!!!!!!SJF-NP is half done
--Implement Bubble Sort for Non-Preemtive Priority and SJF Methods(SJF Done!! Priority not DONE!!!!)
+-FCFS is Done!!!!!!RR is DONE!!!!!
+-Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF not DONE!!!!!! Priority not DONE!!!!)
 */
 
 // GLOBALS//
@@ -35,6 +37,8 @@ enum PMode
 	OFF,
 	ON
 } mode = OFF; // Preemtive Mode Enumeration
+
+// GLOBALS
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
@@ -57,6 +61,13 @@ struct node
 };
 struct node *header_original = NULL;
 
+struct LinearQueue
+{
+	struct LinearQueue *front;
+	struct LinearQueue *rear;
+	struct node *node_pointer;
+};
+
 // Prototypes for Linked List
 struct node *create_node(int, int, int, int);
 struct node *insert_back(struct node *, int, int, int, int);
@@ -66,6 +77,14 @@ struct node *delete_front(struct node *);
 void display_LL(struct node *);
 struct node *clone_LL();
 // Prototypes for Linked List
+
+// Prototypes for Linear Queue
+void initialize_queue(struct LinearQueue *);
+bool is_queue_full(struct LinearQueue *);
+void insert(struct LinearQueue *, struct node *);
+bool is_queue_empty(struct LinearQueue *);
+void remove(struct LinearQueue *);
+// Prototypes for Linear Queue
 
 // Prototypes
 void print_usage();					 // Usage showing Function
@@ -131,7 +150,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// Creating node Function
+// Creating node (Function)
 struct node *create_node(int pid, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp;
@@ -153,7 +172,7 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	return temp;
 }
 
-// Insert back to the LL Function
+// Insert back to the LL (Function)
 struct node *insert_back(struct node *header, int id, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp = create_node(id, burst_time, arrival_time, priority);
@@ -174,7 +193,7 @@ struct node *insert_back(struct node *header, int id, int burst_time, int arriva
 	return header;
 }
 
-// Insert front of the LL Funtion
+// Insert front of the LL (Function)
 struct node *insert_front(struct node *header, int id, int burst_time, int arrival_time, int priority)
 {
 	struct node *temp = create_node(id, burst_time, arrival_time, priority);
@@ -183,7 +202,7 @@ struct node *insert_front(struct node *header, int id, int burst_time, int arriv
 	return header;
 }
 
-// Delete back of the LL Function
+// Delete back of the LL (Function)
 struct node *delete_back(struct node *header)
 {
 	struct node *temp, *header_temp;
@@ -205,7 +224,7 @@ struct node *delete_back(struct node *header)
 	return header;
 }
 
-// Delete front of the LL Function
+// Delete front of the LL (Function)
 struct node *delete_front(struct node *header)
 {
 	struct node *temp;
@@ -221,13 +240,13 @@ struct node *delete_front(struct node *header)
 	return header;
 }
 
-// Displaying the Linked List Items(For Debugging Purposes Only)
+// Displaying the Linked List Items(For Debugging Purposes Only) (Function)
 void display_LL(struct node *header)
 {
 	struct node *temp = header;
 	while (temp != NULL)
 	{
-		int a, b, c, d, e, f, g;
+		int a, b, c, d, e, f, g, h, i, j;
 		bool t;
 		a = temp->process_id;
 		b = temp->burst_time;
@@ -236,8 +255,11 @@ void display_LL(struct node *header)
 		e = temp->waiting_time;
 		f = temp->turnaround_time;
 		g = temp->how_much_left;
+		h = temp->first_response;
+		i = temp->time_slices;
+		j = temp->last_slice_burst;
 
-		printf("ID:%d\tBurst:%d\tArrival:%d\tPriority:%d\tWait:%d\tTurn:%d\tLeft:%d\n", a, b, c, d, e, f, g);
+		printf("ID:%d\tBurst:%d\tArrival:%d\tPriority:%d\tWait:%d\tTurn:%d\tLeft:%d\tResponse:%d\tSlices:%d\tLastSlice:%d\n", a, b, c, d, e, f, g, h, i, j);
 		temp = temp->next;
 	}
 
@@ -245,7 +267,7 @@ void display_LL(struct node *header)
 	getchar();
 }
 
-// Cloning Main LL Function
+// Cloning Main LL (Function)
 struct node *clone_LL(struct node *header)
 {
 	struct node *header_temp = header;
@@ -266,14 +288,59 @@ struct node *clone_LL(struct node *header)
 	return clone_header;
 }
 
-// This funtions is used to print programs usage and what arguments are needed to pass
+// Initializing Queue (Function)
+void initialize_queue(struct LinearQueue *lq)
+{
+	lq->front = 0;
+	lq->rear = -1; // *l.front = 0; *l.rear = -1;
+}
+
+// Checing if tht Queue Is Full (Function)
+bool isQueuefull(struct LinearQueue *lq)
+{
+	if (lq->rear == QUEUE_SIZE - 1)
+		return true;
+	else
+		return false;
+}
+
+// Inserting to Queue (Function)
+void insert(struct LinearQueue *lq, struct node *node_ptr)
+{
+	if (is_queue_full(lq))
+	{
+		printf("Overflow: Queue is FULL!\n");
+		exit(1);
+	}
+	else
+	{
+		lq->node_pointer = node_ptr;
+	}
+	
+}
+
+// Checking if the Queue Is Empty (Function)
+bool is_queue_empty(struct LinearQueue *lq)
+{
+	if (lq->rear < lq->front)
+		return true;
+	else
+		return false;
+}
+
+// Removing From the Queue (Function)
+void remove(struct LinearQueue *lq)
+{
+}
+
+// This funtions is used to print programs usage and what arguments are needed to pass (Function)
 void print_usage()
 {
 	printf("Usage: cmpe351 -f <*.txt> -o <*.txt>\n");
 	exit(1);
 }
 
-// Main Menu Function
+// Main Menu (Function)
 void menu()
 {
 	while (true)
@@ -343,7 +410,7 @@ void menu()
 	}
 }
 
-// Scheduling Methods Menu Function
+// Scheduling Methods Menu (Function)
 void menu1()
 {
 	system("clear");
@@ -409,7 +476,7 @@ void menu1()
 	}
 }
 
-// Preemtive Mode Menu Function
+// Preemtive Mode Menu (Function)
 void menu2()
 {
 	system("clear");
@@ -464,7 +531,7 @@ void menu2()
 	}
 }
 
-// Show Result Menu Function
+// Show Result Menu (Function)
 void menu3()
 {
 	switch (method)
@@ -501,27 +568,20 @@ void menu3()
 	}
 }
 
-// Time Quantum Asking Menu
+// Time Quantum Asking Menu (Function)
 void tq_menu()
 {
-	while (time_quantum == 0)
+	while (true)
 	{
 		system("clear");
 		printf("Please enter the time quantum for Round-Robin Method\n");
 		printf("Time Quantum > ");
 		scanf("%d", &time_quantum);
-	}
-
-	struct node *temp = header_original;
-	while (temp != NULL)
-	{
-		temp->time_slices = temp->burst_time / time_quantum;
-		temp->last_slice_burst = temp->burst_time % time_quantum;
-		temp = temp->next;
+		break;
 	}
 }
 
-// Reading from Input File to Write it to LL Function
+// Reading from Input File to Write it to LL (Function)
 void write_input_to_LL(char *input_filename)
 {
 	FILE *finput = fopen(input_filename, "r");
@@ -544,7 +604,7 @@ void write_input_to_LL(char *input_filename)
 	fclose(finput);
 }
 
-// Getting Total Burst Time Function
+// Getting Total Burst Time (Function)
 int total_burst_time(struct node *header)
 {
 	struct node *temp = header;
@@ -563,7 +623,7 @@ int total_burst_time(struct node *header)
 	return ret;
 }
 
-// First-Come-First-Serve Function
+// First-Come-First-Serve (Function)
 void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
@@ -610,7 +670,7 @@ void fcfs()
 	getchar();
 }
 
-// Shortes-Job-First Non-Preemtive Function
+// Shortes-Job-First Non-Preemtive (Function)
 void sjf_np()
 {
 	// I have first tried selectiob sort but could not figure it out...
@@ -661,7 +721,7 @@ void sjf_np()
 	getchar();
 }
 
-// Priority Scheduling Non-Preemtive Function
+// Priority Scheduling Non-Preemtive (Function)
 void ps_np()
 {
 	struct node *clone_header = clone_LL(header_original);
@@ -709,71 +769,81 @@ void ps_np()
 	getchar();
 }
 
-// Round-Robin Scheduling Function
+// Round-Robin Scheduling (Function)
 void rr()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp1, *temp2;
+	struct node *temp1, *temp2, *temp3;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	int total_time = total_burst_time(clone_header);
 	bool is_first = true;
+	bubble_sort(&clone_header, number_of_process, "AT");
+	temp1 = temp2 = temp3 = clone_header;
+
+	while (temp3 != NULL)
+	{
+		temp3->time_slices = temp3->burst_time / time_quantum;
+		temp3->last_slice_burst = temp3->burst_time % time_quantum;
+		temp3 = temp3->next;
+	}
 
 	while (!is_all_done(clone_header))
 	{
+		display_LL(clone_header);
 		temp1 = clone_header;
 		while (temp1 != NULL)
 		{
-			if (is_first)
+			if (!temp1->is_terminated)
 			{
-				if (temp1->time_slices == 0)
+				if (is_first)
 				{
-					program_counter += temp1->last_slice_burst;
-					temp1->turnaround_time = program_counter;
-					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-					if (temp1->waiting_time < 0)
-						temp1->waiting_time = 0;
-					temp1->is_terminated = true;
+					if (temp1->time_slices == 0)
+					{
+						program_counter += temp1->last_slice_burst;
+						temp1->turnaround_time = program_counter;
+						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+						if (temp1->waiting_time < 0)
+							temp1->waiting_time = 0;
+						temp1->is_terminated = true;
+					}
+					else
+					{
+						program_counter += time_quantum;
+						temp1->time_slices--;
+						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+						if (temp1->waiting_time < 0)
+							temp1->waiting_time = 0;
+					}
+					is_first = false;
 				}
-				else
-				{
-					program_counter += time_quantum;
-					temp1->time_slices--;
-					temp1->turnaround_time = program_counter;
-					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-					if (temp1->waiting_time < 0)
-						temp1->waiting_time = 0;
-				}
-				is_first = false;
-			}
 
-			else
-			{
-				if (temp1->time_slices == 0)
-				{
-					program_counter += temp1->last_slice_burst;
-					temp1->turnaround_time = program_counter;
-					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-					if (temp1->waiting_time < 0)
-						temp1->waiting_time = 0;
-					temp1->is_terminated = true;
-				}
 				else
 				{
-					program_counter += time_quantum;
-					temp1->time_slices--;
-					temp1->turnaround_time = program_counter;
-					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-					if (temp1->waiting_time < 0)
-						temp1->waiting_time = 0;
+					if (temp1->time_slices == 0)
+					{
+						program_counter += temp1->last_slice_burst;
+						temp1->turnaround_time = program_counter;
+						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+						if (temp1->waiting_time < 0)
+							temp1->waiting_time = 0;
+						temp1->is_terminated = true;
+					}
+					else
+					{
+						program_counter += time_quantum;
+						temp1->time_slices--;
+						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+						if (temp1->waiting_time < 0)
+							temp1->waiting_time = 0;
+					}
 				}
 			}
 			temp1 = temp1->next;
 		}
 	}
-
-	temp2 = clone_header;
+	display_LL(clone_header);
 	system("clear");
 	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
 	printf("Process Waiting Times:\n");
@@ -792,7 +862,7 @@ void rr()
 	getchar();
 }
 
-// Counts How many process' are in the LL Function
+// Counts How many process' are in the LL (Function)
 int process_counter(struct node *header)
 {
 	struct node *temp = header;
@@ -806,7 +876,7 @@ int process_counter(struct node *header)
 	return counter;
 }
 
-// Swapping nodes Function
+// Swapping nodes (Function)
 struct node *swap_nodes(struct node *temp1, struct node *temp2)
 {
 	struct node *tmp = temp2->next;
@@ -815,7 +885,7 @@ struct node *swap_nodes(struct node *temp1, struct node *temp2)
 	return temp2;
 }
 
-// Sorts LL in ascending order Function
+// Sorts LL in ascending order (Function)
 void bubble_sort(struct node **header, int counter, char *sort_mode)
 {
 	struct node **header_temp;
@@ -888,7 +958,7 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 	}
 }
 
-// Checking if all the processes are done returning true if all done
+// Checking if all the processes are done returning true if all done (Function)
 bool is_all_done(struct node *header)
 {
 	bool done = true;
