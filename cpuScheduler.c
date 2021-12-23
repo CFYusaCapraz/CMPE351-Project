@@ -567,12 +567,13 @@ int total_burst_time(struct node *header)
 void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp = clone_header;
+	struct node *temp;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bool is_first = true;
-
+	bubble_sort(&clone_header, number_of_process, "AT");
+	temp = clone_header;
 	while (clone_header != NULL)
 	{
 		program_counter += clone_header->burst_time;
@@ -731,7 +732,7 @@ void rr()
 					program_counter += temp1->last_slice_burst;
 					temp1->turnaround_time = program_counter;
 					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-					if(temp1->waiting_time < 0)
+					if (temp1->waiting_time < 0)
 						temp1->waiting_time = 0;
 					temp1->is_terminated = true;
 				}
@@ -741,7 +742,7 @@ void rr()
 					temp1->time_slices--;
 					temp1->turnaround_time = program_counter;
 					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-					if(temp1->waiting_time < 0)
+					if (temp1->waiting_time < 0)
 						temp1->waiting_time = 0;
 				}
 				is_first = false;
@@ -754,7 +755,7 @@ void rr()
 					program_counter += temp1->last_slice_burst;
 					temp1->turnaround_time = program_counter;
 					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-					if(temp1->waiting_time < 0)
+					if (temp1->waiting_time < 0)
 						temp1->waiting_time = 0;
 					temp1->is_terminated = true;
 				}
@@ -764,7 +765,7 @@ void rr()
 					temp1->time_slices--;
 					temp1->turnaround_time = program_counter;
 					temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-					if(temp1->waiting_time < 0)
+					if (temp1->waiting_time < 0)
 						temp1->waiting_time = 0;
 				}
 			}
@@ -856,6 +857,25 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 				{
 					*header_temp = swap_nodes(temp1, temp2);
 					swapped = 1;
+				}
+				header_temp = &(*header_temp)->next;
+			}
+
+			else if (!strcmp(sort_mode, "AT"))
+			{
+				if (temp1->arrival_time > temp2->arrival_time)
+				{
+					*header_temp = swap_nodes(temp1, temp2);
+					swapped = 1;
+				}
+
+				else if (temp1->arrival_time == temp2->arrival_time)
+				{
+					if (temp1->process_id > temp2->process_id)
+					{
+						*header_temp = swap_nodes(temp1, temp2);
+						swapped = 1;
+					}
 				}
 				header_temp = &(*header_temp)->next;
 			}
