@@ -20,8 +20,7 @@ check file exists(DONE!!!)
 -Need to implement a queue structure and funtions (DONE!!!!)But do not know how to use it for preemtive. Need to do research
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS, SJF(Non-Preemtive) and PS(Non-Preemtive) are DONE!!!!!
--RR is not done. Again need to consider arrival times
+-FCFS, SJF(Non-Preemtive), PS(Non-Preemtive) and RR are DONE!!!!!
 -Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF is Done!! Priority is Done!!)
 */
 
@@ -778,7 +777,7 @@ void ps_np()
 	getchar();
 }
 
-// Round-Robin Scheduling (Function) // Needs work (again forget about the arrival time)
+// Round-Robin Scheduling (Function)
 void rr()
 {
 	struct node *clone_header = clone_LL(header_original);
@@ -805,53 +804,81 @@ void rr()
 		{
 			if (!temp1->is_terminated)
 			{
-				if (is_first)
+				if (temp1->arrival_time <= program_counter)
 				{
-					if (temp1->time_slices == 0)
+					if (is_first)
 					{
-						program_counter += temp1->last_slice_burst;
-						if (temp1->last_slice_burst != 0)
+						if (temp1->time_slices == 0)
+						{
+							program_counter += temp1->last_slice_burst;
+							if (temp1->last_slice_burst != 0)
+								temp1->turnaround_time = program_counter;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+							temp1->is_terminated = true;
+						}
+						else
+						{
+							program_counter += time_quantum;
 							temp1->turnaround_time = program_counter;
-						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-						if (temp1->waiting_time < 0)
-							temp1->waiting_time = 0;
-						temp1->is_terminated = true;
+							temp1->time_slices--;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+						}
+						is_first = false;
 					}
+
 					else
 					{
-						program_counter += time_quantum;
-						temp1->turnaround_time = program_counter;
-						temp1->time_slices--;
-						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-						if (temp1->waiting_time < 0)
-							temp1->waiting_time = 0;
+						if (temp1->time_slices == 0)
+						{
+							program_counter += temp1->last_slice_burst;
+							if (temp1->last_slice_burst != 0)
+								temp1->turnaround_time = program_counter;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+							temp1->is_terminated = true;
+						}
+						else
+						{
+							program_counter += time_quantum;
+							temp1->turnaround_time = program_counter;
+							temp1->time_slices--;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+						}
 					}
-					is_first = false;
 				}
 
 				else
 				{
 					if (temp1->time_slices == 0)
-					{
-						program_counter += temp1->last_slice_burst;
-						if (temp1->last_slice_burst != 0)
+						{
+							program_counter += temp1->last_slice_burst;
+							if (temp1->last_slice_burst != 0)
+								temp1->turnaround_time = program_counter;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+							temp1->is_terminated = true;
+						}
+						else
+						{
+							program_counter += time_quantum;
 							temp1->turnaround_time = program_counter;
-						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-						if (temp1->waiting_time < 0)
-							temp1->waiting_time = 0;
-						temp1->is_terminated = true;
-					}
-					else
-					{
-						program_counter += time_quantum;
-						temp1->turnaround_time = program_counter;
-						temp1->time_slices--;
-						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-						if (temp1->waiting_time < 0)
-							temp1->waiting_time = 0;
-					}
+							temp1->time_slices--;
+							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
+							if (temp1->waiting_time < 0)
+								temp1->waiting_time = 0;
+						}
 				}
+				
 			}
+
 			temp1 = temp1->next;
 		}
 	}
