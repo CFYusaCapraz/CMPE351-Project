@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+
 #define QUEUE_SIZE INT_MAX
 
 /****************
@@ -16,11 +17,12 @@
 check file exists(DONE!!!)
 
 -Need to implement a linked list structure and funtions(DONE!!!)
--Need to implement a queue structure and funtions
+-Need to implement a queue structure and funtions (DONE!!!!)But do not know how to use it for preemtive. Need to do research
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS is Done!!!!!!RR is DONE!!!!!
--Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF not DONE!!!!!! Priority not DONE!!!!)
+-FCFS is Done!!!!!!
+-RR is not done. Again need to consider arrival times
+-Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF is Done!! Priority is Done!!)
 */
 
 // GLOBALS//
@@ -57,14 +59,15 @@ struct node
 	int time_slices;
 	int last_slice_burst;
 	bool is_terminated;
+	bool in_cpu;
 	struct node *next;
 };
 struct node *header_original = NULL;
 
 struct LinearQueue
 {
-	struct LinearQueue *front;
-	struct LinearQueue *rear;
+	int front;
+	int rear;
 	struct node *node_pointer;
 };
 
@@ -81,9 +84,9 @@ struct node *clone_LL();
 // Prototypes for Linear Queue
 void initialize_queue(struct LinearQueue *);
 bool is_queue_full(struct LinearQueue *);
-void insert(struct LinearQueue *, struct node *);
+void enqueue(struct LinearQueue *, struct node *);
 bool is_queue_empty(struct LinearQueue *);
-void remove(struct LinearQueue *);
+void dequeue(struct LinearQueue *);
 // Prototypes for Linear Queue
 
 // Prototypes
@@ -101,10 +104,11 @@ void sjf_p();						 // Shortest-Job-First Preemtive
 void ps_np();						 // Priority Scheduling Non-Preemtive
 void ps_p();						 // Priority Scheduling Preemtive
 void rr();
-int process_counter(struct node *);					   // Process counter
-struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
-void bubble_sort(struct node **, int, char *);		   // Bubble Sort (SJF/PS/PID)
-bool is_all_done(struct node *);					   // Checking if all the processes are done
+int process_counter(struct node *);						 // Process counter
+struct node *swap_nodes(struct node *, struct node *);	 // Swap Funcion
+void bubble_sort(struct node **, int, char *);			 // Bubble Sort (AT/PID)
+struct node *selection_sort(struct node *, int, char *); // Selection Sort (SJF/PS)
+bool is_all_done(struct node *);						 // Checking if all the processes are done
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -167,6 +171,7 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	temp->time_slices = 0;
 	temp->last_slice_burst = 0;
 	temp->is_terminated = false;
+	temp->in_cpu = false;
 	temp->next = NULL;
 
 	return temp;
@@ -292,11 +297,11 @@ struct node *clone_LL(struct node *header)
 void initialize_queue(struct LinearQueue *lq)
 {
 	lq->front = 0;
-	lq->rear = -1; // *l.front = 0; *l.rear = -1;
+	lq->rear = -1;
 }
 
 // Checing if tht Queue Is Full (Function)
-bool isQueuefull(struct LinearQueue *lq)
+bool is_queue_full(struct LinearQueue *lq)
 {
 	if (lq->rear == QUEUE_SIZE - 1)
 		return true;
@@ -305,7 +310,7 @@ bool isQueuefull(struct LinearQueue *lq)
 }
 
 // Inserting to Queue (Function)
-void insert(struct LinearQueue *lq, struct node *node_ptr)
+void enqueue(struct LinearQueue *lq, struct node *node_ptr)
 {
 	if (is_queue_full(lq))
 	{
@@ -315,8 +320,8 @@ void insert(struct LinearQueue *lq, struct node *node_ptr)
 	else
 	{
 		lq->node_pointer = node_ptr;
+		lq->front++;
 	}
-	
 }
 
 // Checking if the Queue Is Empty (Function)
@@ -329,7 +334,7 @@ bool is_queue_empty(struct LinearQueue *lq)
 }
 
 // Removing From the Queue (Function)
-void remove(struct LinearQueue *lq)
+void dequeue(struct LinearQueue *lq)
 {
 }
 
@@ -673,7 +678,7 @@ void fcfs()
 // Shortes-Job-First Non-Preemtive (Function)
 void sjf_np()
 {
-	// I have first tried selectiob sort but could not figure it out...
+	// I have first tried selection sort but could not figure it out...
 	//...(There were complications regarding to non-adjacent nodes)
 	// So I changed the sorting algorithm to bubble sort
 	struct node *clone_header = clone_LL(header_original);
@@ -681,10 +686,12 @@ void sjf_np()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
+	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
 	bool is_first = true;
+
 	while (temp != NULL)
 	{
 		program_counter += temp->burst_time;
@@ -702,6 +709,7 @@ void sjf_np()
 		}
 		temp = temp->next;
 	}
+
 	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: Shortest Job First (Non-Preemtive)\n");
@@ -729,6 +737,7 @@ void ps_np()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
+	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
@@ -769,7 +778,7 @@ void ps_np()
 	getchar();
 }
 
-// Round-Robin Scheduling (Function)
+// Round-Robin Scheduling (Function) // Needs work (again forget about the arrival time)
 void rr()
 {
 	struct node *clone_header = clone_LL(header_original);
@@ -791,7 +800,6 @@ void rr()
 
 	while (!is_all_done(clone_header))
 	{
-		display_LL(clone_header);
 		temp1 = clone_header;
 		while (temp1 != NULL)
 		{
@@ -802,7 +810,8 @@ void rr()
 					if (temp1->time_slices == 0)
 					{
 						program_counter += temp1->last_slice_burst;
-						temp1->turnaround_time = program_counter;
+						if (temp1->last_slice_burst != 0)
+							temp1->turnaround_time = program_counter;
 						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
 						if (temp1->waiting_time < 0)
 							temp1->waiting_time = 0;
@@ -811,6 +820,7 @@ void rr()
 					else
 					{
 						program_counter += time_quantum;
+						temp1->turnaround_time = program_counter;
 						temp1->time_slices--;
 						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
 						if (temp1->waiting_time < 0)
@@ -824,7 +834,8 @@ void rr()
 					if (temp1->time_slices == 0)
 					{
 						program_counter += temp1->last_slice_burst;
-						temp1->turnaround_time = program_counter;
+						if (temp1->last_slice_burst != 0)
+							temp1->turnaround_time = program_counter;
 						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
 						if (temp1->waiting_time < 0)
 							temp1->waiting_time = 0;
@@ -833,6 +844,7 @@ void rr()
 					else
 					{
 						program_counter += time_quantum;
+						temp1->turnaround_time = program_counter;
 						temp1->time_slices--;
 						temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
 						if (temp1->waiting_time < 0)
@@ -843,7 +855,7 @@ void rr()
 			temp1 = temp1->next;
 		}
 	}
-	display_LL(clone_header);
+
 	system("clear");
 	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
 	printf("Process Waiting Times:\n");
@@ -889,7 +901,7 @@ struct node *swap_nodes(struct node *temp1, struct node *temp2)
 void bubble_sort(struct node **header, int counter, char *sort_mode)
 {
 	struct node **header_temp;
-	int swapped;
+	int swapped, max_at = 0;
 
 	for (int i = 0; i < counter; i++)
 	{
@@ -901,34 +913,14 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 			struct node *temp1 = *header_temp;
 			struct node *temp2 = temp1->next;
 
-			if (!strcmp(sort_mode, "SJF"))
-			{
-				if (temp1->burst_time >= temp2->burst_time)
-				{
-					*header_temp = swap_nodes(temp1, temp2);
-					swapped = 1;
-				}
-				header_temp = &(*header_temp)->next;
-			}
-
-			else if (!strcmp(sort_mode, "PS"))
-			{
-				if (temp1->priority >= temp2->priority)
-				{
-					*header_temp = swap_nodes(temp1, temp2);
-					swapped = 1;
-				}
-				header_temp = &(*header_temp)->next;
-			}
-
-			else if (!strcmp(sort_mode, "PID"))
+			if (!strcmp(sort_mode, "PID"))
 			{
 				if (temp1->process_id >= temp2->process_id)
 				{
 					*header_temp = swap_nodes(temp1, temp2);
 					swapped = 1;
 				}
-				header_temp = &(*header_temp)->next;
+				header_temp = &(*header_temp)->next; // Setting the header_temp's addres to the address of next node which is in the header_temp's address
 			}
 
 			else if (!strcmp(sort_mode, "AT"))
@@ -947,6 +939,52 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 						swapped = 1;
 					}
 				}
+				header_temp = &(*header_temp)->next;
+			}
+
+			else if (!strcmp(sort_mode, "SJF"))
+			{
+				if (temp1->arrival_time <= max_at && temp2->arrival_time <= max_at)
+				{
+					if (temp1->burst_time > temp2->burst_time)
+					{
+						*header_temp = swap_nodes(temp1, temp2);
+						swapped = 1;
+					}
+
+					else if (temp1->burst_time == temp2->burst_time)
+					{
+						if (temp1->process_id > temp2->process_id)
+						{
+							*header_temp = swap_nodes(temp1, temp2);
+							swapped = 1;
+						}
+					}
+				}
+				max_at += (*header_temp)->burst_time;
+				header_temp = &(*header_temp)->next;
+			}
+
+			else if (!strcmp(sort_mode, "PS"))
+			{
+				if (temp1->arrival_time <= max_at && temp2->arrival_time <= max_at)
+				{
+					if (temp1->priority > temp2->priority)
+					{
+						*header_temp = swap_nodes(temp1, temp2);
+						swapped = 1;
+					}
+
+					else if (temp1->priority == temp2->priority)
+					{
+						if (temp1->process_id > temp2->process_id)
+						{
+							*header_temp = swap_nodes(temp1, temp2);
+							swapped = 1;
+						}
+					}
+				}
+				max_at += (*header_temp)->burst_time;
 				header_temp = &(*header_temp)->next;
 			}
 		}
