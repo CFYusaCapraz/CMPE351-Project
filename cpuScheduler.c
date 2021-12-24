@@ -20,7 +20,7 @@ check file exists(DONE!!!)
 -Need to implement a queue structure and funtions (DONE!!!!)But do not know how to use it for preemtive. Need to do research
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS is Done!!!!!!
+-FCFS, SJF(Non-Preemtive) and PS(Non-Preemtive) are DONE!!!!!
 -RR is not done. Again need to consider arrival times
 -Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF is Done!! Priority is Done!!)
 */
