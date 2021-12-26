@@ -631,41 +631,43 @@ int total_burst_time(struct node *header)
 void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp;
+	struct node *temp1, *temp2;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bool is_first = true;
 	bubble_sort(&clone_header, number_of_process, "AT");
-	temp = clone_header;
-	while (clone_header != NULL)
+	temp1 = clone_LL(clone_header);
+	temp2 = temp1;
+	while (temp1 != NULL)
 	{
-		program_counter += clone_header->burst_time;
-		clone_header->turnaround_time = program_counter;
+		program_counter += temp1->burst_time;
+		temp1->turnaround_time = program_counter;
 		if (is_first)
 		{
-			if ((clone_header->waiting_time = clone_header->turnaround_time - clone_header->burst_time) < 0)
-				clone_header->waiting_time = 0;
+			if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time) < 0)
+				temp1->waiting_time = 0;
 			is_first = false;
 		}
 		else
 		{
-			if ((clone_header->waiting_time = clone_header->turnaround_time - clone_header->burst_time - clone_header->arrival_time) < 0)
-				clone_header->waiting_time = 0;
+			if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time) < 0)
+				temp1->waiting_time = 0;
 		}
-		clone_header = clone_header->next;
+		temp1 = temp1->next;
 	}
 
+	bubble_sort(&temp2, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: First Come First Served\n");
 	printf("Process Waiting Times:\n");
-	while (temp != NULL)
+	while (temp2 != NULL)
 	{
-		int pid = temp->process_id;
-		int wait = temp->waiting_time;
+		int pid = temp2->process_id;
+		int wait = temp2->waiting_time;
 		average_wait += wait;
 		printf("PS%d: %d ms\n", pid, wait);
-		temp = temp->next;
+		temp2 = temp2->next;
 	}
 	average_wait /= number_of_process;
 	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
@@ -685,11 +687,11 @@ void sjf_np()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
+	bool is_first = true;
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
 	struct node *temp1 = temp;
-	bool is_first = true;
 
 	while (temp != NULL)
 	{
