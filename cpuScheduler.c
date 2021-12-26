@@ -108,6 +108,7 @@ struct node *swap_nodes(struct node *, struct node *);	 // Swap Funcion
 void bubble_sort(struct node **, int, char *);			 // Bubble Sort (AT/PID)
 struct node *selection_sort(struct node *, int, char *); // Selection Sort (SJF/PS)
 bool is_all_done(struct node *);						 // Checking if all the processes are done
+bool is_previous_ones_done(struct node *, int);			 // Checking if previous processes are terminated
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -169,7 +170,8 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 	temp->first_response = 0;
 	temp->time_slices = 0;
 	temp->last_slice_burst = 0;
-	temp->is_terminated = false;
+	if (temp->burst_time == 0)
+		temp->is_terminated = false;
 	temp->in_cpu = false;
 	temp->next = NULL;
 
@@ -789,6 +791,7 @@ void rr()
 	int number_of_process = process_counter(clone_header);
 	int total_time = total_burst_time(clone_header);
 	bool is_first = true;
+	bool previous_ones_done = false;
 	bubble_sort(&clone_header, number_of_process, "AT");
 	temp1 = temp2 = temp3 = clone_header;
 
@@ -799,9 +802,12 @@ void rr()
 		temp3 = temp3->next;
 	}
 
+	int x = 0;
+	int diff = 0;
 	while (!is_all_done(clone_header))
 	{
 		temp1 = clone_header;
+		is_first = true;
 		while (temp1 != NULL)
 		{
 			if (!temp1->is_terminated)
@@ -825,9 +831,6 @@ void rr()
 							program_counter += time_quantum;
 							temp1->turnaround_time = program_counter;
 							temp1->time_slices--;
-							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time;
-							if (temp1->waiting_time < 0)
-								temp1->waiting_time = 0;
 						}
 						is_first = false;
 					}
@@ -849,16 +852,17 @@ void rr()
 							program_counter += time_quantum;
 							temp1->turnaround_time = program_counter;
 							temp1->time_slices--;
-							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-							if (temp1->waiting_time < 0)
-								temp1->waiting_time = 0;
 						}
 					}
 				}
 
 				else
 				{
-					if (temp1->time_slices == 0)
+					previous_ones_done = is_previous_ones_done(clone_header, program_counter);
+					if (previous_ones_done)
+					{
+						program_counter = temp1->arrival_time;
+						if (temp1->time_slices == 0)
 						{
 							program_counter += temp1->last_slice_burst;
 							if (temp1->last_slice_burst != 0)
@@ -873,18 +877,17 @@ void rr()
 							program_counter += time_quantum;
 							temp1->turnaround_time = program_counter;
 							temp1->time_slices--;
-							temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time;
-							if (temp1->waiting_time < 0)
-								temp1->waiting_time = 0;
 						}
+					}
 				}
-				
 			}
 
+			is_first = false;
 			temp1 = temp1->next;
 		}
 	}
-
+	display_LL(clone_header);
+	bubble_sort(&clone_header, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
 	printf("Process Waiting Times:\n");
@@ -1037,4 +1040,23 @@ bool is_all_done(struct node *header)
 	}
 
 	return done;
+}
+
+// Checking if all the processes before arrival time is done (Function)
+bool is_previous_ones_done(struct node *header, int at_limit)
+{
+	bool ret = true;
+	while (header != NULL)
+	{
+		if (header->arrival_time <= at_limit)
+		{
+			if (!header->is_terminated)
+			{
+				ret = false;
+			}
+		}
+		header = header->next;
+	}
+
+	return ret;
 }
