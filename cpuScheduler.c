@@ -103,12 +103,11 @@ void sjf_p();						 // Shortest-Job-First Preemtive
 void ps_np();						 // Priority Scheduling Non-Preemtive
 void ps_p();						 // Priority Scheduling Preemtive
 void rr();
-int process_counter(struct node *);						 // Process counter
-struct node *swap_nodes(struct node *, struct node *);	 // Swap Funcion
-void bubble_sort(struct node **, int, char *);			 // Bubble Sort (AT/PID)
-struct node *selection_sort(struct node *, int, char *); // Selection Sort (SJF/PS)
-bool is_all_done(struct node *);						 // Checking if all the processes are done
-bool is_previous_ones_done(struct node *, int);			 // Checking if previous processes are terminated
+int process_counter(struct node *);					   // Process counter
+struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
+void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS)
+bool is_all_done(struct node *);					   // Checking if all the processes are done
+bool is_previous_ones_done(struct node *, int);		   // Checking if previous processes are terminated
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -643,19 +642,32 @@ void fcfs()
 	temp2 = temp1;
 	while (temp1 != NULL)
 	{
-		program_counter += temp1->burst_time;
-		temp1->turnaround_time = program_counter;
-		if (is_first)
+		if (temp1->arrival_time <= program_counter)
 		{
-			if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time) < 0)
-				temp1->waiting_time = 0;
-			is_first = false;
+			program_counter += temp1->burst_time;
+			temp1->turnaround_time = program_counter;
+			if (is_first)
+			{
+				if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time) < 0)
+					temp1->waiting_time = 0;
+				is_first = false;
+			}
+			else
+			{
+				if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time) < 0)
+					temp1->waiting_time = 0;
+			}
 		}
+
 		else
 		{
+			program_counter = temp1->arrival_time;
+			program_counter += temp1->burst_time;
+			temp1->turnaround_time = program_counter;
 			if ((temp1->waiting_time = temp1->turnaround_time - temp1->burst_time - temp1->arrival_time) < 0)
 				temp1->waiting_time = 0;
 		}
+
 		temp1 = temp1->next;
 	}
 
@@ -697,19 +709,32 @@ void sjf_np()
 
 	while (temp != NULL)
 	{
-		program_counter += temp->burst_time;
-		temp->turnaround_time = program_counter;
-		if (is_first)
+		if (temp->arrival_time <= program_counter)
 		{
-			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
-				temp->waiting_time = 0;
-			is_first = false;
+			program_counter += temp->burst_time;
+			temp->turnaround_time = program_counter;
+			if (is_first)
+			{
+				if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
+					temp->waiting_time = 0;
+				is_first = false;
+			}
+			else
+			{
+				if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
+					temp->waiting_time = 0;
+			}
 		}
+
 		else
 		{
+			program_counter = temp->arrival_time;
+			program_counter += temp->burst_time;
+			temp->turnaround_time = program_counter;
 			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
 				temp->waiting_time = 0;
 		}
+
 		temp = temp->next;
 	}
 
@@ -747,19 +772,32 @@ void ps_np()
 	bool is_first = true;
 	while (temp != NULL)
 	{
-		program_counter += temp->burst_time;
-		temp->turnaround_time = program_counter;
-		if (is_first)
+		if (temp->arrival_time <= program_counter)
 		{
-			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
-				temp->waiting_time = 0;
-			is_first = false;
+			program_counter += temp->burst_time;
+			temp->turnaround_time = program_counter;
+			if (is_first)
+			{
+				if ((temp->waiting_time = temp->turnaround_time - temp->burst_time) < 0)
+					temp->waiting_time = 0;
+				is_first = false;
+			}
+			else
+			{
+				if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
+					temp->waiting_time = 0;
+			}
 		}
+
 		else
 		{
+			program_counter = temp->arrival_time;
+			program_counter += temp->burst_time;
+			temp->turnaround_time = program_counter;
 			if ((temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time) < 0)
 				temp->waiting_time = 0;
 		}
+
 		temp = temp->next;
 	}
 	bubble_sort(&temp1, number_of_process, "PID");
@@ -886,7 +924,7 @@ void rr()
 			temp1 = temp1->next;
 		}
 	}
-	display_LL(clone_header);
+
 	bubble_sort(&clone_header, number_of_process, "PID");
 	system("clear");
 	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
@@ -1045,18 +1083,18 @@ bool is_all_done(struct node *header)
 // Checking if all the processes before arrival time is done (Function)
 bool is_previous_ones_done(struct node *header, int at_limit)
 {
-	bool ret = true;
+	bool done = true;
 	while (header != NULL)
 	{
 		if (header->arrival_time <= at_limit)
 		{
 			if (!header->is_terminated)
 			{
-				ret = false;
+				done = false;
 			}
 		}
 		header = header->next;
 	}
 
-	return ret;
+	return done;
 }
