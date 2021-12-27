@@ -45,10 +45,6 @@ char *input_filename = NULL;
 char *output_filename = NULL;
 char buffer_output[9999];
 char buff[500];
-bool fcfs_once = false;
-bool sjf_np_once = false;
-bool ps_np_once = false;
-bool rr_once = false;
 // GLOBALS//
 
 struct node
@@ -416,8 +412,9 @@ void menu()
 			menu4();
 			break;
 		default:
-			exit(0);
-			break; // Need to change here too!!!!!!!!!!!!!
+			printf("Please select a valid option!\n");
+			system("sleep 2");
+			break;
 		}
 	}
 }
