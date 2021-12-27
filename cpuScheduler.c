@@ -43,6 +43,12 @@ enum PMode
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
+char buffer_output[9999];
+char buff[500];
+bool fcfs_once = false;
+bool sjf_np_once = false;
+bool ps_np_once = false;
+bool rr_once = false;
 // GLOBALS//
 
 struct node
@@ -89,20 +95,21 @@ void dequeue(struct LinearQueue *);
 // Prototypes for Linear Queue
 
 // Prototypes
-void print_usage();					 // Usage showing Function
-void menu();						 // Main Menu Function
-void menu1();						 // Scheduling Methods Menu Function
-void menu2();						 // Preemtive Mode Menu Function
-void menu3();						 // Show Results Menu Function
-void tq_menu();						 // Asking the user for time quantum if RR method is selected
-void write_input_to_LL(char *);		 // Reading the input file and then writing it to LL
-int total_burst_time(struct node *); // Getting total burst time of the input file
-void fcfs();						 // FirstComeFirstServe Functions
-void sjf_np();						 // Shortest-Job-First Non-Preemtive
-void sjf_p();						 // Shortest-Job-First Preemtive
-void ps_np();						 // Priority Scheduling Non-Preemtive
-void ps_p();						 // Priority Scheduling Preemtive
-void rr();
+void print_usage();									   // Usage showing Function
+void menu();										   // Main Menu Function
+void menu1();										   // Scheduling Methods Menu Function
+void menu2();										   // Preemtive Mode Menu Function
+void menu3();										   // Show Results Menu Function
+void menu4();										   // End Program Menu Functions
+void tq_menu();										   // Asking the user for time quantum if RR method is selected
+void write_input_to_LL(char *);						   // Reading the input file and then writing it to LL
+int total_burst_time(struct node *);				   // Getting total burst time of the input file
+char *fcfs();										   // FirstComeFirstServe Function
+char *sjf_np();										   // Shortest-Job-First Non-Preemtive
+char *sjf_p();										   // Shortest-Job-First Preemtive
+char *ps_np();										   // Priority Scheduling Non-Preemtive
+char *ps_p();										   // Priority Scheduling Preemtive
+char *rr();											   // Round-Robin Scheduling
 int process_counter(struct node *);					   // Process counter
 struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
 void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS)
@@ -406,8 +413,8 @@ void menu()
 			menu3();
 			break;
 		case 4:
-			exit(0);
-			break; // Need to change here!!!!!!!!!!!!!!!!!
+			menu4();
+			break;
 		default:
 			exit(0);
 			break; // Need to change here too!!!!!!!!!!!!!
@@ -539,16 +546,25 @@ void menu2()
 // Show Result Menu (Function)
 void menu3()
 {
+	char buffer[500];
 	switch (method)
 	{
 	case 1:
-		fcfs();
+		strcpy(buffer, fcfs());
+		printf("%s", buffer);
+		printf("Press Enter to return to the main menu.\n");
+		getchar();
+		getchar();
 		break;
 
 	case 2:
 		if (mode == 0)
 		{
-			sjf_np();
+			strcpy(buffer,sjf_np());
+			printf("%s",buffer);
+			printf("Press Enter to return to the main menu.\n");
+			getchar();
+			getchar();
 		}
 		else
 		{
@@ -559,7 +575,11 @@ void menu3()
 	case 3:
 		if (mode == 0)
 		{
-			ps_np();
+			strcpy(buffer,ps_np());
+			printf("%s",buffer);
+			printf("Press Enter to return to the main menu.\n");
+			getchar();
+			getchar();
 		}
 		else
 		{
@@ -568,9 +588,30 @@ void menu3()
 		break;
 
 	case 4:
-		rr();
+		strcpy(buffer,rr());
+		printf("%s",buffer);
+		printf("Press Enter to return to the main menu.\n");
+		getchar();
+		getchar();
 		break;
 	}
+}
+
+// End Program Menu (Function)
+void menu4()
+{
+	tq_menu();
+	strcat(buffer_output,fcfs());
+	strcat(buffer_output,sjf_np());
+	strcat(buffer_output,ps_np());
+	strcat(buffer_output,rr());
+
+	printf("%s", buffer_output);
+	FILE *f = fopen(output_filename, "w");
+	fprintf(f, "%s", buffer_output);
+	fclose(f);
+
+	exit(0);
 }
 
 // Time Quantum Asking Menu (Function)
@@ -629,7 +670,7 @@ int total_burst_time(struct node *header)
 }
 
 // First-Come-First-Serve (Function)
-void fcfs()
+char *fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp1, *temp2;
@@ -640,6 +681,7 @@ void fcfs()
 	bubble_sort(&clone_header, number_of_process, "AT");
 	temp1 = clone_LL(clone_header);
 	temp2 = temp1;
+
 	while (temp1 != NULL)
 	{
 		if (temp1->arrival_time <= program_counter)
@@ -671,27 +713,30 @@ void fcfs()
 		temp1 = temp1->next;
 	}
 
+	strcpy(buff, "");
 	bubble_sort(&temp2, number_of_process, "PID");
 	system("clear");
-	printf("Scheduling Method: First Come First Served\n");
-	printf("Process Waiting Times:\n");
+	strcat(buff, "Scheduling Method: First Come First Served\n");
+	strcat(buff, "Process Waiting Times:\n");
 	while (temp2 != NULL)
 	{
 		int pid = temp2->process_id;
 		int wait = temp2->waiting_time;
 		average_wait += wait;
-		printf("PS%d: %d ms\n", pid, wait);
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
 		temp2 = temp2->next;
 	}
 	average_wait /= number_of_process;
-	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
-	printf("Press Enter to return to the main menu.\n");
-	getchar();
-	getchar();
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
 }
 
 // Shortes-Job-First Non-Preemtive (Function)
-void sjf_np()
+char *sjf_np()
 {
 	// I have first tried selection sort but could not figure it out...
 	//...(There were complications regarding to non-adjacent nodes)
@@ -738,27 +783,30 @@ void sjf_np()
 		temp = temp->next;
 	}
 
+	strcpy(buff, "");
 	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
-	printf("Scheduling Method: Shortest Job First (Non-Preemtive)\n");
-	printf("Process Waiting Times:\n");
+	strcat(buff, "Scheduling Method: Shortest Job First (Non-Preemtive)\n");
+	strcat(buff, "Process Waiting Times:\n");
 	while (temp1 != NULL)
 	{
 		int pid = temp1->process_id;
 		int wait = temp1->waiting_time;
 		average_wait += wait;
-		printf("PS%d: %d ms\n", pid, wait);
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
 		temp1 = temp1->next;
 	}
 	average_wait /= number_of_process;
-	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
-	printf("Press Enter to return to the main menu.\n");
-	getchar();
-	getchar();
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
 }
 
 // Priority Scheduling Non-Preemtive (Function)
-void ps_np()
+char *ps_np()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp;
@@ -800,27 +848,31 @@ void ps_np()
 
 		temp = temp->next;
 	}
+
+	strcpy(buff, "");
 	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
-	printf("Scheduling Method: Priority Scheduling (Non-Preemtive)\n");
-	printf("Process Waiting Times:\n");
+	strcat(buff, "Scheduling Method: Priority Scheduling (Non-Preemtive)\n");
+	strcat(buff, "Process Waiting Times:\n");
 	while (temp1 != NULL)
 	{
 		int pid = temp1->process_id;
 		int wait = temp1->waiting_time;
 		average_wait += wait;
-		printf("PS%d: %d ms\n", pid, wait);
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
 		temp1 = temp1->next;
 	}
 	average_wait /= number_of_process;
-	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
-	printf("Press Enter to return to the main menu.\n");
-	getchar();
-	getchar();
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
 }
 
 // Round-Robin Scheduling (Function)
-void rr()
+char *rr()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp1, *temp2, *temp3;
@@ -925,23 +977,26 @@ void rr()
 		}
 	}
 
+	strcpy(buff, "");
 	bubble_sort(&clone_header, number_of_process, "PID");
 	system("clear");
-	printf("Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
-	printf("Process Waiting Times:\n");
+	snprintf(buff, 499, "Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
+	strcat(buff, "Process Waiting Times:\n");
 	while (temp2 != NULL)
 	{
 		int pid = temp2->process_id;
 		int wait = temp2->waiting_time;
 		average_wait += wait;
-		printf("PS%d: %d ms\n", pid, wait);
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
 		temp2 = temp2->next;
 	}
 	average_wait /= number_of_process;
-	printf("Average Waiting Time: %.3f ms\n\n", average_wait);
-	printf("Press Enter to return to the main menu.\n");
-	getchar();
-	getchar();
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
 }
 
 // Counts How many process' are in the LL (Function)
