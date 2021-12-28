@@ -1032,7 +1032,7 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 		header_temp = header;
 		swapped = 0;
 		max_at = 0;
-		
+
 		for (j = 0; j < counter - 1 - i; j++)
 		{
 			struct node *temp1 = *header_temp;
@@ -1085,8 +1085,13 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 							swapped = 1;
 						}
 					}
+					max_at += (*header_temp)->burst_time;
 				}
-				max_at += (*header_temp)->burst_time;
+				else
+				{
+					max_at += (*header_temp)->next->burst_time;
+				}
+
 				header_temp = &(*header_temp)->next;
 			}
 
@@ -1108,8 +1113,13 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 							swapped = 1;
 						}
 					}
+					max_at += (*header_temp)->burst_time;
 				}
-				max_at += (*header_temp)->burst_time;
+				else
+				{
+					max_at += (*header_temp)->next->burst_time;
+				}
+
 				header_temp = &(*header_temp)->next;
 			}
 		}
