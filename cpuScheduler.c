@@ -557,8 +557,8 @@ void menu3()
 	case 2:
 		if (mode == 0)
 		{
-			strcpy(buffer,sjf_np());
-			printf("%s",buffer);
+			strcpy(buffer, sjf_np());
+			printf("%s", buffer);
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
@@ -572,8 +572,8 @@ void menu3()
 	case 3:
 		if (mode == 0)
 		{
-			strcpy(buffer,ps_np());
-			printf("%s",buffer);
+			strcpy(buffer, ps_np());
+			printf("%s", buffer);
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
@@ -585,8 +585,8 @@ void menu3()
 		break;
 
 	case 4:
-		strcpy(buffer,rr());
-		printf("%s",buffer);
+		strcpy(buffer, rr());
+		printf("%s", buffer);
 		printf("Press Enter to return to the main menu.\n");
 		getchar();
 		getchar();
@@ -597,11 +597,12 @@ void menu3()
 // End Program Menu (Function)
 void menu4()
 {
-	tq_menu();
-	strcat(buffer_output,fcfs());
-	strcat(buffer_output,sjf_np());
-	strcat(buffer_output,ps_np());
-	strcat(buffer_output,rr());
+	if (time_quantum == 0)
+		tq_menu();
+	strcat(buffer_output, fcfs());
+	strcat(buffer_output, sjf_np());
+	strcat(buffer_output, ps_np());
+	strcat(buffer_output, rr());
 
 	printf("%s", buffer_output);
 	FILE *f = fopen(output_filename, "w");
