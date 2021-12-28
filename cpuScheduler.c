@@ -1031,7 +1031,8 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 	{
 		header_temp = header;
 		swapped = 0;
-
+		max_at = 0;
+		
 		for (j = 0; j < counter - 1 - i; j++)
 		{
 			struct node *temp1 = *header_temp;
