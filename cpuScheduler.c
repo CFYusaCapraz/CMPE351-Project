@@ -1025,13 +1025,14 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 {
 	struct node **header_temp;
 	int swapped, max_at = 0;
+	int i, j;
 
-	for (int i = 0; i < counter; i++)
+	for (i = 0; i < counter; i++)
 	{
 		header_temp = header;
 		swapped = 0;
 
-		for (int j = 0; j < counter - 1 - i; j++)
+		for (j = 0; j < counter - 1 - i; j++)
 		{
 			struct node *temp1 = *header_temp;
 			struct node *temp2 = temp1->next;
