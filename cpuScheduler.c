@@ -3,9 +3,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <string.h>
-#include <limits.h>
 
-#define QUEUE_SIZE INT_MAX
 
 /****************
 -This is CMPE 351 Project program
@@ -43,8 +41,8 @@ enum PMode
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
-char buffer_output[9999];
-char buff[500];
+char buffer_output[99999];
+char buff[1000];
 // GLOBALS//
 
 struct node
@@ -65,12 +63,11 @@ struct node
 };
 struct node *header_original = NULL;
 
-struct LinearQueue
+typedef struct ReadyQueue
 {
-	int front;
-	int rear;
+	struct ReadyQueue *next;
 	struct node *node_pointer;
-};
+} ReadyQueue;
 
 // Prototypes for Linked List
 struct node *create_node(int, int, int, int);
@@ -83,11 +80,8 @@ struct node *clone_LL();
 // Prototypes for Linked List
 
 // Prototypes for Linear Queue
-void initialize_queue(struct LinearQueue *);
-bool is_queue_full(struct LinearQueue *);
-void enqueue(struct LinearQueue *, struct node *);
-bool is_queue_empty(struct LinearQueue *);
-void dequeue(struct LinearQueue *);
+ReadyQueue *enqueue(struct ReadyQueue *, struct node *);
+ReadyQueue *dequeue(struct ReadyQueue *);
 // Prototypes for Linear Queue
 
 // Prototypes
@@ -296,48 +290,18 @@ struct node *clone_LL(struct node *header)
 	return clone_header;
 }
 
-// Initializing Queue (Function)
-void initialize_queue(struct LinearQueue *lq)
-{
-	lq->front = 0;
-	lq->rear = -1;
-}
-
-// Checing if tht Queue Is Full (Function)
-bool is_queue_full(struct LinearQueue *lq)
-{
-	if (lq->rear == QUEUE_SIZE - 1)
-		return true;
-	else
-		return false;
-}
-
 // Inserting to Queue (Function)
-void enqueue(struct LinearQueue *lq, struct node *node_ptr)
+ReadyQueue *enqueue(struct ReadyQueue *rq, struct node *node_ptr)
 {
-	if (is_queue_full(lq))
-	{
-		printf("Overflow: Queue is FULL!\n");
-		exit(1);
-	}
-	else
-	{
-		lq->node_pointer = node_ptr;
-		lq->front++;
-	}
-}
+	ReadyQueue *temp = (ReadyQueue *)malloc(sizeof(ReadyQueue));
 
-// Checking if the Queue Is Empty (Function)
-bool is_queue_empty(struct LinearQueue *lq)
-{
-	if (lq->rear < lq->front)
-		return true;
-	else
-		return false;
+	if (rq == NULL)
+	{
+	}
 }
 
 // Removing From the Queue (Function)
-void dequeue(struct LinearQueue *lq)
+ReadyQueue *dequeue(struct ReadyQueue *rq)
 {
 }
 
@@ -807,14 +771,14 @@ char *sjf_np()
 char *ps_np()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp;
+	struct node *temp, *temp1;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
-	struct node *temp1 = temp;
+	temp1 = temp;
 	bool is_first = true;
 	while (temp != NULL)
 	{
@@ -890,8 +854,6 @@ char *rr()
 		temp3 = temp3->next;
 	}
 
-	int x = 0;
-	int diff = 0;
 	while (!is_all_done(clone_header))
 	{
 		temp1 = clone_header;
@@ -978,7 +940,7 @@ char *rr()
 	strcpy(buff, "");
 	bubble_sort(&clone_header, number_of_process, "PID");
 	system("clear");
-	snprintf(buff, 499, "Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
+	snprintf(buff, 999, "Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
 	strcat(buff, "Process Waiting Times:\n");
 	while (temp2 != NULL)
 	{
