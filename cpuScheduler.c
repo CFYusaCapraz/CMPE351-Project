@@ -344,7 +344,7 @@ void dequeue(struct LinearQueue *lq)
 // This funtions is used to print programs usage and what arguments are needed to pass (Function)
 void print_usage()
 {
-	printf("Usage: cmpe351 -f <*.txt> -o <*.txt>\n");
+	printf("Usage: cpuScheduler -f <*.txt> -o <*.txt>\n");
 	exit(1);
 }
 
@@ -1089,7 +1089,8 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 				}
 				else
 				{
-					max_at += (*header_temp)->next->burst_time;
+					if (temp2->arrival_time > max_at)
+						max_at = temp2->arrival_time;
 				}
 
 				header_temp = &(*header_temp)->next;
@@ -1117,7 +1118,8 @@ void bubble_sort(struct node **header, int counter, char *sort_mode)
 				}
 				else
 				{
-					max_at += (*header_temp)->next->burst_time;
+					if (temp2->arrival_time > max_at)
+						max_at = temp2->arrival_time;
 				}
 
 				header_temp = &(*header_temp)->next;
