@@ -106,6 +106,7 @@ void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS
 bool is_all_done(struct node *);					   // Checking if all the processes are done
 bool is_previous_ones_done(struct node *, int);		   // Checking if previous processes are terminated
 struct node *find_in_cpu(struct node *);
+struct node *find_least_left(struct node *, int);
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -781,6 +782,35 @@ char *sjf_p()
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
 	temp1 = temp;
+
+	temp->in_cpu = true;
+	while (!is_all_done(temp))
+	{
+		struct node *temp2 = temp;
+		struct node *in_cpu_node = find_in_cpu(temp);
+		
+		in_cpu_node->how_much_left--;
+		program_counter++;
+
+		if (in_cpu_node->how_much_left > 0)
+		{
+			in_cpu_node->in_cpu = false;
+			in_cpu_node = find_least_left(temp2, program_counter);
+			in_cpu_node->in_cpu = true;
+		}
+
+		else if (in_cpu_node->how_much_left == 0)
+		{
+			in_cpu_node->turnaround_time = program_counter;
+			in_cpu_node->is_terminated = true;
+			in_cpu_node->in_cpu = false;
+			in_cpu_node = find_least_left(temp2, program_counter);
+			in_cpu_node->in_cpu = true;
+		}
+	}
+
+	bubble_sort(&temp, number_of_process, "PID");
+	display_LL(temp);
 }
 
 // Priority Scheduling Non-Preemtive (Function)
@@ -1148,9 +1178,35 @@ struct node *find_in_cpu(struct node *header)
 {
 	while (header != NULL)
 	{
-		if (header->in_cpu = true)
-			return header;
+		if (!header->is_terminated)
+		{
+			if (header->in_cpu == true)
+				return header;
+		}
 		else
 			header = header->next;
 	}
+}
+
+struct node *find_least_left(struct node *header, int at_limit)
+{
+	struct node *temp;
+	int x = INT_MAX;
+	while (header != NULL)
+	{
+		if (!header->is_terminated)
+		{
+			if (header->arrival_time <= at_limit)
+			{
+				if (header->how_much_left < x)
+				{
+					temp = header;
+					x = header->how_much_left;
+				}
+			}
+		}
+		header = header->next;
+	}
+
+	return temp;
 }
