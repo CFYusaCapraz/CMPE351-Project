@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <string.h>
-
+#include <limits.h>
 
 /****************
 -This is CMPE 351 Project program
@@ -105,6 +105,7 @@ struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
 void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS)
 bool is_all_done(struct node *);					   // Checking if all the processes are done
 bool is_previous_ones_done(struct node *, int);		   // Checking if previous processes are terminated
+struct node *find_in_cpu(struct node *);
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -529,7 +530,7 @@ void menu3()
 		}
 		else
 		{
-			// sjf_p();
+			sjf_p();
 		}
 		break;
 
@@ -604,7 +605,7 @@ void write_input_to_LL(char *input_filename)
 		while (!feof(finput)) // Reading the input file and recording the values to Linked List
 		{
 			int a, b, c;
-			fscanf(finput, "%d:%d:%d", &a, &b, &c);
+			fscanf(finput, "%d:%d:%d\n", &a, &b, &c);
 			header_original = insert_back(header_original, id_counter, a, b, c);
 			id_counter++;
 		}
@@ -765,6 +766,21 @@ char *sjf_np()
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
 	return buff;
+}
+
+// Shortest-Job-First Preemtive (Function)
+char *sjf_p()
+{
+	struct node *clone_header = clone_LL(header_original);
+	struct node *temp, *temp1;
+	int program_counter = 0;
+	float average_wait = 0.0f;
+	int number_of_process = process_counter(clone_header);
+	int total_time = total_burst_time(clone_header);
+	bubble_sort(&clone_header, number_of_process, "AT");
+	bubble_sort(&clone_header, number_of_process, "SJF");
+	temp = clone_LL(clone_header);
+	temp1 = temp;
 }
 
 // Priority Scheduling Non-Preemtive (Function)
@@ -1126,4 +1142,15 @@ bool is_previous_ones_done(struct node *header, int at_limit)
 	}
 
 	return done;
+}
+
+struct node *find_in_cpu(struct node *header)
+{
+	while (header != NULL)
+	{
+		if (header->in_cpu = true)
+			return header;
+		else
+			header = header->next;
+	}
 }
