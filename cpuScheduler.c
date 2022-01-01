@@ -15,7 +15,6 @@
 check file exists(DONE!!!)
 
 -Need to implement a linked list structure and funtions(DONE!!!)
--Need to implement a queue structure and funtions (DONE!!!!)But do not know how to use it for preemtive. Need to do research
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
 -Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
 -FCFS, SJF(Non-Preemtive), PS(Non-Preemtive) and RR are DONE!!!!!
@@ -63,26 +62,13 @@ struct node
 };
 struct node *header_original = NULL;
 
-typedef struct ReadyQueue
-{
-	struct ReadyQueue *next;
-	struct node *node_pointer;
-} ReadyQueue;
-
 // Prototypes for Linked List
 struct node *create_node(int, int, int, int);
 struct node *insert_back(struct node *, int, int, int, int);
-struct node *insert_back(struct node *, int, int, int, int);
-struct node *delete_back(struct node *);
 struct node *delete_front(struct node *);
 void display_LL(struct node *);
 struct node *clone_LL();
 // Prototypes for Linked List
-
-// Prototypes for Linear Queue
-ReadyQueue *enqueue(struct ReadyQueue *, struct node *);
-ReadyQueue *dequeue(struct ReadyQueue *);
-// Prototypes for Linear Queue
 
 // Prototypes
 void print_usage();									   // Usage showing Function
@@ -198,37 +184,6 @@ struct node *insert_back(struct node *header, int id, int burst_time, int arriva
 	return header;
 }
 
-// Insert front of the LL (Function)
-struct node *insert_front(struct node *header, int id, int burst_time, int arrival_time, int priority)
-{
-	struct node *temp = create_node(id, burst_time, arrival_time, priority);
-	temp->next = header;
-	header->next = temp;
-	return header;
-}
-
-// Delete back of the LL (Function)
-struct node *delete_back(struct node *header)
-{
-	struct node *temp, *header_temp;
-
-	// Checking if the LL is empty
-	if (header == NULL)
-	{
-		return header;
-	}
-
-	header_temp = header;
-	while (header_temp->next->next != NULL)
-	{
-		header_temp = header_temp->next;
-	}
-	temp = header_temp->next;
-	header_temp->next = NULL;
-	free(temp);
-	return header;
-}
-
 // Delete front of the LL (Function)
 struct node *delete_front(struct node *header)
 {
@@ -291,21 +246,6 @@ struct node *clone_LL(struct node *header)
 	}
 
 	return clone_header;
-}
-
-// Inserting to Queue (Function)
-ReadyQueue *enqueue(struct ReadyQueue *rq, struct node *node_ptr)
-{
-	ReadyQueue *temp = (ReadyQueue *)malloc(sizeof(ReadyQueue));
-
-	if (rq == NULL)
-	{
-	}
-}
-
-// Removing From the Queue (Function)
-ReadyQueue *dequeue(struct ReadyQueue *rq)
-{
 }
 
 // This funtions is used to print programs usage and what arguments are needed to pass (Function)
@@ -969,7 +909,7 @@ char *ps_np()
 	return buff;
 }
 
-// Priority Scheduling Non-Preemtive (Function)
+// Priority Scheduling Preemtive (Function)
 char *ps_p()
 {
 	struct node *clone_header = clone_LL(header_original);
