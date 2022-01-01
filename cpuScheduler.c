@@ -730,72 +730,18 @@ char *sjf_p()
 	int total_time = total_burst_time(clone_header);
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
-	temp = clone_LL(clone_header);
-	temp1 = temp;
+	temp = temp1 = clone_header;
 
-	temp->in_cpu = true;
-	while (!is_all_done(temp))
+	while (!is_all_done(clone_header))
 	{
-		struct node *temp2 = temp;
-		struct node *in_cpu_node = find_in_cpu(temp);
-
-		in_cpu_node->how_much_left--;
+		struct node *in_cpu_node = find_least_left(clone_header, program_counter);
 		program_counter++;
+		in_cpu_node->how_much_left--;
 
-		if (in_cpu_node->how_much_left > 0)
-		{
-			in_cpu_node->in_cpu = false;
-			in_cpu_node = find_least_left(temp, program_counter);
-			if (in_cpu_node == NULL)
-			{
-				while (temp2 != NULL)
-				{
-					if (!temp2->is_terminated)
-					{
-						if (temp2->arrival_time > program_counter)
-						{
-							program_counter = temp2->arrival_time;
-							in_cpu_node = find_least_left(temp, program_counter);
-							in_cpu_node->in_cpu = true;
-							break;
-						}
-					}
-					temp2 = temp2->next;
-				}
-			}
-			else
-			{
-				in_cpu_node->in_cpu = true;
-			}
-		}
-
-		else if (in_cpu_node->how_much_left == 0)
+		if (in_cpu_node->how_much_left == 0)
 		{
 			in_cpu_node->turnaround_time = program_counter;
 			in_cpu_node->is_terminated = true;
-			in_cpu_node->in_cpu = false;
-			in_cpu_node = find_least_left(temp, program_counter);
-			if (in_cpu_node == NULL)
-			{
-				while (temp2 != NULL)
-				{
-					if (!temp2->is_terminated)
-					{
-						if (temp2->arrival_time > program_counter)
-						{
-							program_counter = temp2->arrival_time;
-							in_cpu_node = find_least_left(temp, program_counter);
-							in_cpu_node->in_cpu = true;
-							break;
-						}
-					}
-					temp2 = temp2->next;
-				}
-			}
-			else
-			{
-				in_cpu_node->in_cpu = true;
-			}
 		}
 	}
 
