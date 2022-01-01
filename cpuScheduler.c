@@ -105,8 +105,9 @@ struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
 void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS)
 bool is_all_done(struct node *);					   // Checking if all the processes are done
 bool is_previous_ones_done(struct node *, int);		   // Checking if previous processes are terminated
-struct node *find_in_cpu(struct node *);
-struct node *find_least_left(struct node *, int);
+struct node *find_in_cpu(struct node *);			   // Finding the node which is in the CPU
+struct node *find_least_left(struct node *, int);	   // Finding the node which has the least time left
+struct node *find_least_priority(struct node *, int);  // Finding the node which has the least priority
 // Prototypes
 
 int main(int argc, char *argv[])
@@ -531,7 +532,11 @@ void menu3()
 		}
 		else
 		{
-			sjf_p();
+			strcpy(buffer, sjf_p());
+			printf("%s", buffer);
+			printf("Press Enter to return to the main menu.\n");
+			getchar();
+			getchar();
 		}
 		break;
 
@@ -546,7 +551,11 @@ void menu3()
 		}
 		else
 		{
-			// ps_p();
+			strcpy(buffer, ps_p());
+			printf("%s", buffer);
+			printf("Press Enter to return to the main menu.\n");
+			getchar();
+			getchar();
 		}
 		break;
 
@@ -567,6 +576,7 @@ void menu4()
 		tq_menu();
 	strcat(buffer_output, fcfs());
 	strcat(buffer_output, sjf_np());
+	strcat(buffer_output, sjf_p());
 	strcat(buffer_output, ps_np());
 	strcat(buffer_output, rr());
 
@@ -788,15 +798,35 @@ char *sjf_p()
 	{
 		struct node *temp2 = temp;
 		struct node *in_cpu_node = find_in_cpu(temp);
-		
+
 		in_cpu_node->how_much_left--;
 		program_counter++;
 
 		if (in_cpu_node->how_much_left > 0)
 		{
 			in_cpu_node->in_cpu = false;
-			in_cpu_node = find_least_left(temp2, program_counter);
-			in_cpu_node->in_cpu = true;
+			in_cpu_node = find_least_left(temp, program_counter);
+			if (in_cpu_node == NULL)
+			{
+				while (temp2 != NULL)
+				{
+					if (!temp2->is_terminated)
+					{
+						if (temp2->arrival_time > program_counter)
+						{
+							program_counter = temp2->arrival_time;
+							in_cpu_node = find_least_left(temp, program_counter);
+							in_cpu_node->in_cpu = true;
+							break;
+						}
+					}
+					temp2 = temp2->next;
+				}
+			}
+			else
+			{
+				in_cpu_node->in_cpu = true;
+			}
 		}
 
 		else if (in_cpu_node->how_much_left == 0)
@@ -804,13 +834,73 @@ char *sjf_p()
 			in_cpu_node->turnaround_time = program_counter;
 			in_cpu_node->is_terminated = true;
 			in_cpu_node->in_cpu = false;
-			in_cpu_node = find_least_left(temp2, program_counter);
-			in_cpu_node->in_cpu = true;
+			in_cpu_node = find_least_left(temp, program_counter);
+			if (in_cpu_node == NULL)
+			{
+				while (temp2 != NULL)
+				{
+					if (!temp2->is_terminated)
+					{
+						if (temp2->arrival_time > program_counter)
+						{
+							program_counter = temp2->arrival_time;
+							in_cpu_node = find_least_left(temp, program_counter);
+							in_cpu_node->in_cpu = true;
+							break;
+						}
+					}
+					temp2 = temp2->next;
+				}
+			}
+			else
+			{
+				in_cpu_node->in_cpu = true;
+			}
 		}
 	}
 
-	bubble_sort(&temp, number_of_process, "PID");
-	display_LL(temp);
+	bool is_first = true;
+	while (temp != NULL)
+	{
+		if (is_first)
+		{
+			temp->waiting_time = temp->turnaround_time - temp->burst_time;
+			if (temp->waiting_time < 0)
+				temp->waiting_time = 0;
+
+			is_first = false;
+		}
+
+		else
+		{
+			temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time;
+			if (temp->waiting_time < 0)
+				temp->waiting_time = 0;
+		}
+
+		temp = temp->next;
+	}
+
+	strcpy(buff, "");
+	bubble_sort(&temp1, number_of_process, "PID");
+	system("clear");
+	strcat(buff, "Scheduling Method: Shortest Job First Scheduling (Preemtive)\n");
+	strcat(buff, "Process Waiting Times:\n");
+	while (temp1 != NULL)
+	{
+		int pid = temp1->process_id;
+		int wait = temp1->waiting_time;
+		average_wait += wait;
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
+		temp1 = temp1->next;
+	}
+	average_wait /= number_of_process;
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
 }
 
 // Priority Scheduling Non-Preemtive (Function)
@@ -861,6 +951,130 @@ char *ps_np()
 	bubble_sort(&temp1, number_of_process, "PID");
 	system("clear");
 	strcat(buff, "Scheduling Method: Priority Scheduling (Non-Preemtive)\n");
+	strcat(buff, "Process Waiting Times:\n");
+	while (temp1 != NULL)
+	{
+		int pid = temp1->process_id;
+		int wait = temp1->waiting_time;
+		average_wait += wait;
+		char buff_1[20];
+		snprintf(buff_1, 19, "PS%d: %d ms\n", pid, wait);
+		strcat(buff, buff_1);
+		temp1 = temp1->next;
+	}
+	average_wait /= number_of_process;
+	char buff_2[40];
+	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
+	strcat(buff, buff_2);
+	return buff;
+}
+
+// Priority Scheduling Non-Preemtive (Function)
+char *ps_p()
+{
+	struct node *clone_header = clone_LL(header_original);
+	struct node *temp, *temp1;
+	int program_counter = 0;
+	float average_wait = 0.0f;
+	int number_of_process = process_counter(clone_header);
+	int total_time = total_burst_time(clone_header);
+	bubble_sort(&clone_header, number_of_process, "AT");
+	bubble_sort(&clone_header, number_of_process, "PS");
+	temp = clone_LL(clone_header);
+	temp1 = temp;
+
+	temp->in_cpu = true;
+	while (!is_all_done(temp))
+	{
+		struct node *temp2 = temp;
+		struct node *in_cpu_node = find_in_cpu(temp);
+
+		in_cpu_node->how_much_left--;
+		program_counter++;
+
+		if (in_cpu_node->how_much_left > 0)
+		{
+			in_cpu_node->in_cpu = false;
+			in_cpu_node = find_least_priority(temp, program_counter);
+			if (in_cpu_node == NULL)
+			{
+				while (temp2 != NULL)
+				{
+					if (!temp2->is_terminated)
+					{
+						if (temp2->arrival_time > program_counter)
+						{
+							program_counter = temp2->arrival_time;
+							in_cpu_node = find_least_priority(temp, program_counter);
+							in_cpu_node->in_cpu = true;
+							break;
+						}
+					}
+					temp2 = temp2->next;
+				}
+			}
+			else
+			{
+				in_cpu_node->in_cpu = true;
+			}
+		}
+
+		else if (in_cpu_node->how_much_left == 0)
+		{
+			in_cpu_node->turnaround_time = program_counter;
+			in_cpu_node->is_terminated = true;
+			in_cpu_node->in_cpu = false;
+			in_cpu_node = find_least_priority(temp, program_counter);
+			if (in_cpu_node == NULL)
+			{
+				while (temp2 != NULL)
+				{
+					if (!temp2->is_terminated)
+					{
+						if (temp2->arrival_time > program_counter)
+						{
+							program_counter = temp2->arrival_time;
+							in_cpu_node = find_least_priority(temp, program_counter);
+							in_cpu_node->in_cpu = true;
+							break;
+						}
+					}
+					temp2 = temp2->next;
+				}
+			}
+			else
+			{
+				in_cpu_node->in_cpu = true;
+			}
+		}
+	}
+
+	bool is_first = true;
+	while (temp != NULL)
+	{
+		if (is_first)
+		{
+			temp->waiting_time = temp->turnaround_time - temp->burst_time;
+			if (temp->waiting_time < 0)
+				temp->waiting_time = 0;
+
+			is_first = false;
+		}
+
+		else
+		{
+			temp->waiting_time = temp->turnaround_time - temp->burst_time - temp->arrival_time;
+			if (temp->waiting_time < 0)
+				temp->waiting_time = 0;
+		}
+
+		temp = temp->next;
+	}
+
+	strcpy(buff, "");
+	bubble_sort(&temp1, number_of_process, "PID");
+	system("clear");
+	strcat(buff, "Scheduling Method: Priority Scheduling (Preemtive)\n");
 	strcat(buff, "Process Waiting Times:\n");
 	while (temp1 != NULL)
 	{
@@ -1174,6 +1388,7 @@ bool is_previous_ones_done(struct node *header, int at_limit)
 	return done;
 }
 
+// Finding the node which is in the CPU
 struct node *find_in_cpu(struct node *header)
 {
 	while (header != NULL)
@@ -1188,9 +1403,10 @@ struct node *find_in_cpu(struct node *header)
 	}
 }
 
+// Finding the node which has the least time left
 struct node *find_least_left(struct node *header, int at_limit)
 {
-	struct node *temp;
+	struct node *temp = NULL;
 	int x = INT_MAX;
 	while (header != NULL)
 	{
@@ -1199,6 +1415,30 @@ struct node *find_least_left(struct node *header, int at_limit)
 			if (header->arrival_time <= at_limit)
 			{
 				if (header->how_much_left < x)
+				{
+					temp = header;
+					x = header->how_much_left;
+				}
+			}
+		}
+		header = header->next;
+	}
+
+	return temp;
+}
+
+// Finding the node which has the least priority
+struct node *find_least_priority(struct node *header, int at_limit)
+{
+	struct node *temp = NULL;
+	int x = INT_MAX;
+	while (header != NULL)
+	{
+		if (!header->is_terminated)
+		{
+			if (header->arrival_time <= at_limit)
+			{
+				if (header->priority < x)
 				{
 					temp = header;
 					x = header->how_much_left;
