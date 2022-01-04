@@ -4,20 +4,21 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+#define BUFF_SIZE 2000
 
 /****************
 -This is CMPE 351 Project program
 -This program simulates the CPU Scheduler methods
+-If input file process' are more than 100 please change the BUFF_SIZE macro to 10000
 */
 
-/*TODO
+/*TODO (All TODO list items are DONE!!!!!)
 -Need to implement a way to check if the passed input argument exists (Not gonna check if the file is txt, just
 check file exists(DONE!!!)
-
 -Need to implement a linked list structure and funtions(DONE!!!)
 -Need to implement a function to read from input file and insert them to Linked List(DONE!!!)
--Need to make a menu (Main menu, Methods menu, and Preemtive Mode menu are done) (IMPLEMENT menu3 and menu4)
--FCFS, SJF(Non-Preemtive), PS(Non-Preemtive) and RR are DONE!!!!!
+-Need to make a menu (Main menu, Methods menu, Preemtive Mode menu, Show Results menu and End Program menu is DONE!!!)
+-FCFS, SJF(Non-Preemtive), PS(Non-Preemtive), RR, SJF(Preemtive) and PS(Preemtive) are DONE!!!
 -Implement Bubble Sort for selected mode(AT is Done!! PID is Done!! SJF is Done!! Priority is Done!!)
 */
 
@@ -40,8 +41,8 @@ enum PMode
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
-char buff[1000];
-char buffer_output[99999];
+char buff[BUFF_SIZE];
+char buffer_output[BUFF_SIZE * 6];
 // GLOBALS//
 
 struct node
@@ -449,7 +450,7 @@ void menu2()
 // Show Result Menu (Function)
 void menu3()
 {
-	char buffer[1000];
+	char buffer[BUFF_SIZE];
 	memset(buffer, 0, sizeof(buffer));
 	switch (method)
 	{
