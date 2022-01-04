@@ -40,8 +40,8 @@ enum PMode
 int time_quantum;
 char *input_filename = NULL;
 char *output_filename = NULL;
-char buffer_output[99999];
 char buff[1000];
+char buffer_output[99999];
 // GLOBALS//
 
 struct node
@@ -79,7 +79,7 @@ void menu3();										   // Show Results Menu Function
 void menu4();										   // End Program Menu Functions
 void tq_menu();										   // Asking the user for time quantum if RR method is selected
 void write_input_to_LL(char *);						   // Reading the input file and then writing it to LL
-int total_burst_time(struct node *);				   // Getting total burst time of the input file
+void tq_again();									   // Asking for time quantum again
 char *fcfs();										   // FirstComeFirstServe Function
 char *sjf_np();										   // Shortest-Job-First Non-Preemtive
 char *sjf_p();										   // Shortest-Job-First Preemtive
@@ -449,7 +449,8 @@ void menu2()
 // Show Result Menu (Function)
 void menu3()
 {
-	char buffer[500];
+	char buffer[1000];
+	memset(buffer, 0, sizeof(buffer));
 	switch (method)
 	{
 	case 1:
@@ -513,6 +514,11 @@ void menu4()
 {
 	if (time_quantum == 0)
 		tq_menu();
+	else
+	{
+		tq_again();
+	}
+
 	strcat(buffer_output, fcfs());
 	strcat(buffer_output, sjf_np());
 	strcat(buffer_output, sjf_p());
@@ -564,23 +570,25 @@ void write_input_to_LL(char *input_filename)
 	fclose(finput);
 }
 
-// Getting Total Burst Time (Function)
-int total_burst_time(struct node *header)
+// Asking for time quantum again (Function)
+void tq_again()
 {
-	struct node *temp = header;
-	int ret = 0;
-	if (temp == NULL)
-	{
-		return ret;
-	}
+	char a;
+	printf("Would you like to enter the time quantum again(Y/N): ");
+	getchar();
 
-	while (temp != NULL)
+	switch (getchar())
 	{
-		ret += temp->burst_time;
-		temp = temp->next;
+	case 'Y':
+		tq_menu();
+		break;
+	case 'y':
+		tq_menu();
+		break;
+	default:
+		return;
+		break;
 	}
-
-	return ret;
 }
 
 // First-Come-First-Serve (Function)
@@ -727,7 +735,6 @@ char *sjf_p()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
-	int total_time = total_burst_time(clone_header);
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = temp1 = temp2 = clone_header;
@@ -892,7 +899,6 @@ char *ps_p()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
-	int total_time = total_burst_time(clone_header);
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = temp1 = temp2 = clone_header;
@@ -939,7 +945,7 @@ char *ps_p()
 				in_cpu_node->is_terminated = true;
 			}
 		}
-		}
+	}
 
 	bool is_first = true;
 	while (temp1 != NULL)
@@ -992,7 +998,6 @@ char *rr()
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
-	int total_time = total_burst_time(clone_header);
 	bool is_first = true;
 	bool previous_ones_done = false;
 	bubble_sort(&clone_header, number_of_process, "AT");
