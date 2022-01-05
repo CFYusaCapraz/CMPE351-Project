@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
-#define BUFF_SIZE 99999
+#define BUFF_SIZE 999999
 
 /****************
 -This is CMPE 351 Project program
