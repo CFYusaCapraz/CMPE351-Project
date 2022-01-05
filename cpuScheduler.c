@@ -48,6 +48,7 @@ bool sjf_p_first = true;
 bool ps_np_first = true;
 bool ps_p_first = true;
 bool rr_first = true;
+char *exe;
 // GLOBALS//
 
 struct node
@@ -102,6 +103,7 @@ struct node *find_least_priority(struct node *, int);  // Finding the node which
 
 int main(int argc, char *argv[])
 {
+	exe = argv[0];
 	int options = 0;
 
 	// Here we check if the correct options are used
@@ -257,7 +259,7 @@ struct node *clone_LL(struct node *header)
 // This funtions is used to print programs usage and what arguments are needed to pass (Function)
 void print_usage()
 {
-	printf("Usage: cpuScheduler -f <*.txt> -o <*.txt>\n");
+	printf("Usage: %s -f <input filename> -o <output filename>\n", exe);
 	exit(1);
 }
 
