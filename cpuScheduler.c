@@ -1155,6 +1155,7 @@ void rr()
 
 	strcpy(buff, "");
 	bubble_sort(&clone_header, number_of_process, "PID");
+	temp2 = clone_header;
 	system("clear");
 	snprintf(buff, 999, "Scheduling Method: Round-Robin (Time quantum: %d)\n", time_quantum);
 	strcat(buff, "Process Waiting Times:\n");
