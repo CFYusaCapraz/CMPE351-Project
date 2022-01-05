@@ -545,6 +545,11 @@ void menu4()
 	fprintf(f, "%s", buffer_output);
 	fclose(f);
 
+	while (header_original != NULL)
+	{
+		header_original = delete_front(header_original);
+	}
+
 	exit(0);
 }
 
@@ -678,12 +683,12 @@ void sjf_np()
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
-	while(clone_header != NULL)
+	while (clone_header != NULL)
 	{
 		clone_header = delete_front(clone_header);
 	}
 	t = temp1 = temp;
-	
+
 	bool is_first = true;
 	while (temp != NULL)
 	{
@@ -867,7 +872,7 @@ void ps_np()
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
-	while(clone_header != NULL)
+	while (clone_header != NULL)
 	{
 		clone_header = delete_front(clone_header);
 	}
@@ -1177,7 +1182,6 @@ void rr()
 	{
 		clone_header = delete_front(clone_header);
 	}
-	
 }
 
 // Counts How many process' are in the LL (Function)
