@@ -4,12 +4,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
-#define BUFF_SIZE 2000
+#define BUFF_SIZE 99999
 
 /****************
 -This is CMPE 351 Project program
 -This program simulates the CPU Scheduler methods
--If input file process' are more than 100 please change the BUFF_SIZE macro to 10000
 */
 
 /*TODO (All TODO list items are DONE!!!!!)
@@ -43,6 +42,12 @@ char *input_filename = NULL;
 char *output_filename = NULL;
 char buff[BUFF_SIZE];
 char buffer_output[BUFF_SIZE * 6];
+bool fcfs_first = true;
+bool sjf_np_first = true;
+bool sjf_p_first = true;
+bool ps_np_first = true;
+bool ps_p_first = true;
+bool rr_first = true;
 // GLOBALS//
 
 struct node
@@ -80,13 +85,12 @@ void menu3();										   // Show Results Menu Function
 void menu4();										   // End Program Menu Functions
 void tq_menu();										   // Asking the user for time quantum if RR method is selected
 void write_input_to_LL(char *);						   // Reading the input file and then writing it to LL
-void tq_again();									   // Asking for time quantum again
-char *fcfs();										   // FirstComeFirstServe Function
-char *sjf_np();										   // Shortest-Job-First Non-Preemtive
-char *sjf_p();										   // Shortest-Job-First Preemtive
-char *ps_np();										   // Priority Scheduling Non-Preemtive
-char *ps_p();										   // Priority Scheduling Preemtive
-char *rr();											   // Round-Robin Scheduling
+void fcfs();										   // FirstComeFirstServe Function
+void sjf_np();										   // Shortest-Job-First Non-Preemtive
+void sjf_p();										   // Shortest-Job-First Preemtive
+void ps_np();										   // Priority Scheduling Non-Preemtive
+void ps_p();										   // Priority Scheduling Preemtive
+void rr();											   // Round-Robin Scheduling
 int process_counter(struct node *);					   // Process counter
 struct node *swap_nodes(struct node *, struct node *); // Swap Funcion
 void bubble_sort(struct node **, int, char *);		   // Bubble Sort (AT/PID/SJF/PS)
@@ -144,6 +148,7 @@ struct node *create_node(int pid, int burst_time, int arrival_time, int priority
 {
 	struct node *temp;
 	temp = (struct node *)malloc(sizeof(struct node));
+	memset(temp, '\0', sizeof(struct node));
 
 	temp->process_id = pid;
 	temp->burst_time = burst_time;
@@ -196,6 +201,7 @@ struct node *delete_front(struct node *header)
 
 	temp = header;
 	header = header->next;
+	memset(temp, '\0', sizeof(struct node));
 	free(temp);
 	return header;
 }
@@ -450,13 +456,10 @@ void menu2()
 // Show Result Menu (Function)
 void menu3()
 {
-	char buffer[BUFF_SIZE];
-	memset(buffer, 0, sizeof(buffer));
 	switch (method)
 	{
 	case 1:
-		strcpy(buffer, fcfs());
-		printf("%s", buffer);
+		fcfs();
 		printf("Press Enter to return to the main menu.\n");
 		getchar();
 		getchar();
@@ -465,16 +468,14 @@ void menu3()
 	case 2:
 		if (mode == 0)
 		{
-			strcpy(buffer, sjf_np());
-			printf("%s", buffer);
+			sjf_np();
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
 		}
 		else
 		{
-			strcpy(buffer, sjf_p());
-			printf("%s", buffer);
+			sjf_p();
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
@@ -484,16 +485,14 @@ void menu3()
 	case 3:
 		if (mode == 0)
 		{
-			strcpy(buffer, ps_np());
-			printf("%s", buffer);
+			ps_np();
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
 		}
 		else
 		{
-			strcpy(buffer, ps_p());
-			printf("%s", buffer);
+			ps_p();
 			printf("Press Enter to return to the main menu.\n");
 			getchar();
 			getchar();
@@ -501,8 +500,7 @@ void menu3()
 		break;
 
 	case 4:
-		strcpy(buffer, rr());
-		printf("%s", buffer);
+		rr();
 		printf("Press Enter to return to the main menu.\n");
 		getchar();
 		getchar();
@@ -515,17 +513,30 @@ void menu4()
 {
 	if (time_quantum == 0)
 		tq_menu();
-	else
+	if (fcfs_first)
 	{
-		tq_again();
+		fcfs();
 	}
-
-	strcat(buffer_output, fcfs());
-	strcat(buffer_output, sjf_np());
-	strcat(buffer_output, sjf_p());
-	strcat(buffer_output, ps_np());
-	strcat(buffer_output, ps_p());
-	strcat(buffer_output, rr());
+	if (sjf_np_first)
+	{
+		sjf_np();
+	}
+	if (sjf_p_first)
+	{
+		sjf_p();
+	}
+	if (ps_np_first)
+	{
+		ps_np();
+	}
+	if (ps_p_first)
+	{
+		ps_p();
+	}
+	if (rr_first)
+	{
+		rr();
+	}
 
 	printf("%s", buffer_output);
 	FILE *f = fopen(output_filename, "w");
@@ -571,39 +582,22 @@ void write_input_to_LL(char *input_filename)
 	fclose(finput);
 }
 
-// Asking for time quantum again (Function)
-void tq_again()
-{
-	char a;
-	printf("Would you like to enter the time quantum again(Y/N): ");
-	getchar();
-
-	switch (getchar())
-	{
-	case 'Y':
-		tq_menu();
-		break;
-	case 'y':
-		tq_menu();
-		break;
-	default:
-		return;
-		break;
-	}
-}
-
 // First-Come-First-Serve (Function)
-char *fcfs()
+void fcfs()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp1, *temp2;
+	struct node *temp1, *temp2, *t;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bool is_first = true;
 	bubble_sort(&clone_header, number_of_process, "AT");
 	temp1 = clone_LL(clone_header);
-	temp2 = temp1;
+	while (clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
+	t = temp2 = temp1;
 
 	while (temp1 != NULL)
 	{
@@ -655,26 +649,40 @@ char *fcfs()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (fcfs_first)
+	{
+		strcat(buffer_output, buff);
+		fcfs_first = false;
+	}
+	printf("%s", buff);
+
+	while (t != NULL)
+	{
+		t = delete_front(t);
+	}
 }
 
 // Shortes-Job-First Non-Preemtive (Function)
-char *sjf_np()
+void sjf_np()
 {
 	// I have first tried selection sort but could not figure it out...
 	//...(There were complications regarding to non-adjacent nodes)
 	// So I changed the sorting algorithm to bubble sort
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp;
+	struct node *temp, *temp1, *t;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
-	bool is_first = true;
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "SJF");
 	temp = clone_LL(clone_header);
-	struct node *temp1 = temp;
-
+	while(clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
+	t = temp1 = temp;
+	
+	bool is_first = true;
 	while (temp != NULL)
 	{
 		if (temp->arrival_time <= program_counter)
@@ -725,11 +733,21 @@ char *sjf_np()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (sjf_np_first)
+	{
+		strcat(buffer_output, buff);
+		sjf_np_first = false;
+	}
+	printf("%s", buff);
+
+	while (t != NULL)
+	{
+		t = delete_front(t);
+	}
 }
 
 // Shortest-Job-First Preemtive (Function)
-char *sjf_p()
+void sjf_p()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp, *temp1, *temp2;
@@ -823,21 +841,36 @@ char *sjf_p()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (sjf_p_first)
+	{
+		strcat(buffer_output, buff);
+		sjf_p_first = false;
+	}
+	printf("%s", buff);
+
+	while (clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
 }
 
 // Priority Scheduling Non-Preemtive (Function)
-char *ps_np()
+void ps_np()
 {
 	struct node *clone_header = clone_LL(header_original);
-	struct node *temp, *temp1;
+	struct node *temp, *temp1, *t;
 	int program_counter = 0;
 	float average_wait = 0.0f;
 	int number_of_process = process_counter(clone_header);
 	bubble_sort(&clone_header, number_of_process, "AT");
 	bubble_sort(&clone_header, number_of_process, "PS");
 	temp = clone_LL(clone_header);
-	temp1 = temp;
+	while(clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
+	t = temp1 = temp;
+
 	bool is_first = true;
 	while (temp != NULL)
 	{
@@ -889,11 +922,21 @@ char *ps_np()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (ps_np_first)
+	{
+		strcat(buffer_output, buff);
+		ps_np_first = false;
+	}
+	printf("%s", buff);
+
+	while (t != NULL)
+	{
+		t = delete_front(t);
+	}
 }
 
 // Priority Scheduling Preemtive (Function)
-char *ps_p()
+void ps_p()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp, *temp1, *temp2;
@@ -988,11 +1031,20 @@ char *ps_p()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (ps_p_first)
+	{
+		strcat(buffer_output, buff);
+		ps_p_first = false;
+	}
+	printf("%s", buff);
+	while (clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
 }
 
 // Round-Robin Scheduling (Function)
-char *rr()
+void rr()
 {
 	struct node *clone_header = clone_LL(header_original);
 	struct node *temp1, *temp2, *temp3;
@@ -1113,7 +1165,17 @@ char *rr()
 	char buff_2[40];
 	snprintf(buff_2, 39, "Average Waiting Time: %.3f ms\n\n", average_wait);
 	strcat(buff, buff_2);
-	return buff;
+	if (rr_first)
+	{
+		strcat(buffer_output, buff);
+		rr_first = false;
+	}
+	printf("%s", buff);
+	while (clone_header != NULL)
+	{
+		clone_header = delete_front(clone_header);
+	}
+	
 }
 
 // Counts How many process' are in the LL (Function)
